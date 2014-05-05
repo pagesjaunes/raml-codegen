@@ -1,0 +1,208 @@
+import "customer.stg"
+
+plugin_file(raml, opts) ::= <<
+robohydra/plugins/<opts.title>_<raml.cleanVersion>/index.js
+>>
+
+method(aHTTPMethod, aMethodHandlerBody) ::= <<
+if(req.method == '<aHTTPMethod>') {
+	<aMethodHandlerBody>
+}
+
+>>
+
+head(rootPath, path, aHandlerBody, aErrorBody) ::= <<
+new RoboHydraHead({
+                name: '<path>',
+                path: '<rootPath><path>(\\\.(\\\w)+)?',
+                handler: function(req, res) {
+                    var overReturn = null, oLog = [], fake = { log:function(l) { oLog.push(l); }, send: function(c) { overReturn = c; }, headers: {} };
+                    (function(req, res) {
+                      res.log("Access Resource: <path>");
+                      <aHandlerBody>
+                      <aErrorBody> 
+                    })(req, fake);
+                    if(typeof req.queryParams != "undefined" && typeof req.queryParams["_verbose"] !== "undefined") {
+                      // We use the html template to serve the response
+                      verboseResponse(req, fake, res, overReturn, oLog);
+                    } else { 
+                      console.log(oLog);
+                      res.statusCode = fake.statusCode;
+                      for(var h in fake.headers) {req.headers[h] = fake.headers[h]; };
+                      res.send(overReturn);
+                   }
+                }
+            })
+>>
+
+callError(aResource, someStatus) ::= <<
+error_<aResource.methodUri>(req,res,<someStatus>);
+return;
+>>
+
+generateError(aResource) ::= <<
+
+function error_<aResource.methodUri>(req,res, someStatus) {
+	//console.log(someStatus);
+	for(var aStatus = 0;aStatus \< someStatus.length ; aStatus++) {
+<aResource.actions.keys: { k |
+		if(req.method =='<k>') {
+		//console.log("Action method ok ... "+req.method);	
+<aResource.actions.(k).nok: { s | 
+			if(someStatus[aStatus] == <s.status>) {
+				console.log("Status OK : "+someStatus[aStatus]);
+				<if(s.defaultMediaType)><defaultMediaType(s)><endif>
+				<s.bodyKeys: {c | <contentType(c, s.status, {<s.response.body.(c).exampleEscapeJS>})> }>
+				<defaultResponse(s, "")>
+			\} 
+}>
+		\} 
+}>	}
+	res.statusCode = someStatus[0];
+	res.send(typeof defaultError[someStatus[0]] === "undefined" ? "Bad Request..." : defaultError[someStatus[0]]);
+} 
+
+<aResource.resources.keys: { rk | <generateError(aResource.resources.(rk))>}>
+>>
+
+plugin(raml, opts) ::= <<
+
+<customer(raml,opts)>
+
+var RoboHydraHead = require("robohydra").heads.RoboHydraHead;
+var customer;
+
+var defaultError = {
+	400: "Bad Request...",
+	401: "Unauthorized...",
+	403: "Forbidden...",
+	404: "Not Found...",
+	405: "Method Not Allowed...",
+	406: "Not Acceptable...",
+	415: "Unsupported Media Type..."
+};
+
+function last(req) {
+    var oLast = req.url.split('/');
+    oLast = oLast[oLast.length-1]==''?oLast[oLast.length-2]:oLast[oLast.length-1];
+    return oLast.split('?')[0];
+}
+
+function matchExtension(req, aContentType) {
+	return ~last(req).indexOf('.'+aContentType.split('/')[1]);
+}
+
+function overLoadDefaultContentType(req, aDefaultContentType) {
+	return last(req).split('.').length>1 && !matchExtension(req, aDefaultContentType);
+}
+
+function okQueryParams(req, aList, res) {
+	if(aList.length == 0) {
+		return true;
+	}
+	res.log("Mandatory query params are : "+aList);
+	if(typeof req.queryParams === "undefined") {
+		res.log("Your resquest must have all these mandatory params");
+		return false;
+	}
+	for(var l=0; l \< aList.length; l++) {
+		if(typeof req.queryParams[aList[l]] === "undefined") {
+			res.log("Missing mandatory query param: "+aList[l]);
+			return false;
+		}
+	};
+	return true;
+}
+
+<raml.resources.keys: { rk | <generateError(raml.resources.(rk))>}>
+
+exports.getBodyParts = function(conf) {
+	customer = new Customer(typeof conf.customerPath === "undefined"?null:conf.customerPath);
+    return {
+        heads: [
+            <fromResources({<opts.title><if(raml.version)>/<raml.version><endif>},raml.resources)>
+        ]
+    };
+};
+>>
+
+contentType(aContentType, aStatus, aReturn) ::= <<
+if(~req.headers['accept'].indexOf('<aContentType>') || matchExtension(req, '<aContentType>')) {
+	res.statusCode=<aStatus>;
+	res.send('<aReturn>');
+	return;
+} 
+>>
+
+defaultResponse(aResponse, elseBody) ::= <<
+<if(aResponse.starBody)>
+res.statusCode = <aResponse.status>;
+res.send('<aResponse.starBody.exampleEscapeJS>');
+return; <else><elseBody><endif>
+>>
+
+defaultMediaType(aResponse) ::= <<
+if(!overLoadDefaultContentType(req, '<aResponse.defaultMediaType>')&&
+	(typeof req.headers['accept'] === "undefined" || 
+	~req.headers['accept'].indexOf('*/*') || 
+	~req.headers['accept'].indexOf('<aResponse.defaultMediaType>'))) {
+	res.statusCode=<aResponse.status>;
+	res.send('<aResponse.defaultBody.exampleEscapeJS>');
+	return;
+} 
+>>
+
+mandatoryHeaders(aResponse) ::= <<
+res.headers = {};
+<aResponse.mandatoryHeaders.keys: { mh | res.headers["<mh>"] = <aResponse.mandatoryHeaders.(mh)>;
+}> >>
+
+fromResponse(aResource, aResponse) ::= <<
+<if(aResponse.mandatoryHeaders)><mandatoryHeaders(aResponse)><endif>
+<if(aResponse.defaultMediaType)><defaultMediaType(aResponse)><endif>
+<aResponse.bodyKeys: { bk | <contentType(bk,aResponse.status,aResponse.response.body.(bk).exampleEscapeJS)> 
+}>
+<defaultResponse(aResponse, {<callError(aResource, "[415,406,400]")>})>
+>>
+
+tableauJS(aList) ::= <<
+["<first(aList)>"<rest(aList):{item |, "<item>"}>]
+>>
+
+enteteAction(aResource, anAction) ::= <<
+<if(anAction.mandatoryQueryParams)>
+if(!okQueryParams(req, <tableauJS(anAction.mandatoryQueryParams)>, res)) {
+	<callError(aResource, "[400]")>
+}
+<endif>
+>>
+
+overload(aResource, aResponse) ::= <<
+customer.get('<aResource.uri_express>',req.method,{"url":req.url, "p":req.params, "q":req.queryParams},res);
+if(overReturn != null) {
+    if(typeof res.statusCode === 'undefined') {res.statusCode = <aResponse.status>;}
+    res.log("The response body overrides the default raml content for the url: "+req.url);
+    return;
+} else { res.log("No custom rule matches the url "+req.url+". Uses the raml default content"); }
+
+>>
+
+fromAction(aResource, aMethod, anAction) ::= <<
+<enteteAction(aResource, anAction)><if(anAction.okorko)><overload(aResource, anAction.okorko)><endif><fromResponse(aResource, anAction.okorko)>
+>>     
+
+body(aResource) ::= <<
+<! Generate the body of the head handler !>
+<aResource.actions.keys: {ak | <method(ak, {<fromAction(aResource, ak, aResource.actions.(ak))>})>}>
+>>
+
+fromResource(aRootPath, aResource) ::= <<
+<! Generate a head from a resource !>
+<head(aRootPath,aResource.uri_express,{<body(aResource)>}, {<callError(aResource, "[405,400]")>})><if(aResource.resources)>,
+<fromResources(aRootPath, aResource.resources)><endif> >>
+
+fromResources(aRootPath,someResources) ::= <<
+<! Generate the heads from the resources !>
+<if(someResources.keys)>
+<fromResource(aRootPath,someResources.(first(someResources.keys)))><rest(someResources.keys):{ kr | ,<fromResource(aRootPath,someResources.(kr))> }><endif> >>
+ 

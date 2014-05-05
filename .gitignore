@@ -1,0 +1,13 @@
+# Eclipse
+.settings
+.classpath
+.project
+
+# Mardown generated html
+README.html
+
+# Maven target
+target
+
+# Emacs 
+*~

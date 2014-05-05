@@ -1,0 +1,5 @@
+config_file(raml, opts) ::= <<
+<opts.title>_config.conf
+>>
+
+config(raml, opts) ::= << {"plugins": ["<opts.title>_<raml.cleanVersion>"]} >>

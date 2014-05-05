@@ -1,0 +1,759 @@
+#%RAML 0.8
+title: API Geo
+version: 2
+baseUri: http://192.168.48.25/api-geo-{version}
+
+resourceTypes:
+  - base:
+      uriParameters:
+        mediaTypeExtension:
+          enum: [.json,.xml]
+          description: Use .json to specify application/json media type.
+          required: false
+traits:
+  - paged:
+      usage: A appliquer quand la pagination est n��cessaire
+      description: Positionne les param��tres n��cessaires �� la pagination
+      queryParameters:
+        offset:
+          description: Curseur dans la liste
+          type: number
+        limit:
+          description: Nombre d'��lements max �� remonter
+          type: number
+
+/lieux:
+  get:
+    description: Revoit les lieux
+    queryParameters:
+      types:
+        description: Filtre sur le type de lieu �� analyser
+        required: false
+        type: string
+        enum:
+          - LOCALITE
+          - REGION
+          - DEPARTEMENT
+    responses:
+      500:
+        body:
+          "*/*": 
+            example: NOT YET IMPLEMENTED ... And will never be implemented !
+  /{id}{mediaTypeExtension}:
+    type: base
+    uriParameters:
+      id:
+        description: Identifiant unique du lieu
+        type: string
+        required: true
+        pattern: ^[A-Z|a-z][0-9|\W]+$
+        example: |
+          L03523800 pour une localit�� (Rennes),
+          D035 pour un d��partement (Ille & Vilaine),
+          R53 pour une r��gion (Bretagne)
+    get:
+      description: R��cup��rer un lieu par son identifiant
+      responses:
+        200:
+          body:
+            application/json:
+              schema: |
+                {
+                  "xs:schema": {
+                    "-xmlns:xs": "http://www.w3.org/2001/XMLSchema",
+                    "-version": "1.0",
+                    "xs:element": {
+                      "-name": "Lieu",
+                      "-type": "lieu"
+                    },
+                    "xs:complexType": [
+                      {
+                        "-name": "adresse",
+                        "xs:complexContent": {
+                          "xs:extension": {
+                            "-base": "infoMinimal",
+                            "xs:sequence": {
+                              "xs:element": [
+                                {
+                                  "-name": "numero",
+                                  "-type": "xs:string",
+                                  "-minOccurs": "0"
+                                },
+                                {
+                                  "-name": "complement_numero",
+                                  "-type": "xs:string",
+                                  "-minOccurs": "0"
+                                },
+                                {
+                                  "-name": "code_postal",
+                                  "-type": "xs:string",
+                                  "-minOccurs": "0"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "-name": "arrondissement",
+                        "xs:complexContent": {
+                          "xs:extension": {
+                            "-base": "infoMinimal",
+                            "xs:sequence": {
+                              "xs:element": [
+                                {
+                                  "-name": "numero",
+                                  "-type": "xs:string",
+                                  "-minOccurs": "0"
+                                },
+                                {
+                                  "-name": "codes_postaux",
+                                  "-type": "xs:string",
+                                  "-minOccurs": "0",
+                                  "-maxOccurs": "unbounded"
+                                },
+                                {
+                                  "-name": "arrondissements_voisins",
+                                  "-type": "arrondissement",
+                                  "-minOccurs": "0",
+                                  "-maxOccurs": "unbounded"
+                                },
+                                {
+                                  "-name": "localites_voisines",
+                                  "-type": "localite",
+                                  "-minOccurs": "0",
+                                  "-maxOccurs": "unbounded"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "-name": "coordonnees",
+                        "xs:sequence": {
+                          "xs:element": [
+                            {
+                              "-name": "type",
+                              "-type": "xs:string",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "coordinates",
+                              "-type": "xs:double",
+                              "-minOccurs": "1",
+                              "-maxOccurs": "unbounded"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "-name": "departement",
+                        "xs:complexContent": {
+                          "xs:extension": {
+                            "-base": "infoMinimal",
+                            "xs:sequence": {
+                              "xs:element": [
+                                {
+                                  "-name": "code_mineralogique",
+                                  "-type": "xs:string",
+                                  "-minOccurs": "0"
+                                },
+                                {
+                                  "-name": "departements_voisins",
+                                  "-type": "departement",
+                                  "-minOccurs": "0",
+                                  "-maxOccurs": "unbounded"
+                                },
+                                {
+                                  "-name": "prefecture",
+                                  "-type": "localite",
+                                  "-minOccurs": "0"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "-name": "infoMinimal",
+                        "xs:sequence": {
+                          "xs:element": [
+                            {
+                              "-name": "id",
+                              "-type": "xs:string",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "libelle",
+                              "-type": "xs:string",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "liens",
+                              "-minOccurs": "0",
+                              "xs:complexType": {
+                                "xs:sequence": {
+                                  "xs:element": {
+                                    "-name": "entry",
+                                    "-minOccurs": "0",
+                                    "-maxOccurs": "unbounded",
+                                    "xs:complexType": {
+                                      "xs:sequence": {
+                                        "xs:element": [
+                                          {
+                                            "-name": "key",
+                                            "-minOccurs": "1",
+                                            "-type": "xs:string"
+                                          },
+                                          {
+                                            "-name": "value",
+                                            "-minOccurs": "1",
+                                            "-type": "xs:string"
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "-name": "resource_id",
+                              "-type": "xs:string",
+                              "-minOccurs": "0"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "-name": "lieu",
+                        "xs:sequence": {
+                          "xs:element": [
+                            {
+                              "-name": "id",
+                              "-type": "xs:string",
+                              "-minOccurs": "1",
+                              "xs:annotation": {
+                                "xs:documentation": "Identifiant du lieu."
+                              }
+                            },
+                            {
+                              "-name": "type",
+                              "-type": "typeLieu",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "libelle",
+                              "-type": "xs:string",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "geometrie",
+                              "-type": "coordonnees",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "region",
+                              "-type": "region",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "departement",
+                              "-type": "departement",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "zoneUrbaine",
+                              "-type": "zoneUrbaine",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "localite",
+                              "-type": "localite",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "arrondissement",
+                              "-type": "arrondissement",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "voie",
+                              "-type": "voie",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "adresse",
+                              "-type": "adresse",
+                              "-minOccurs": "0"
+                            },
+                            {
+                              "-name": "resource_id",
+                              "-type": "xs:string",
+                              "-minOccurs": "0"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "-name": "localite",
+                        "xs:complexContent": {
+                          "xs:extension": {
+                            "-base": "infoMinimal",
+                            "xs:sequence": {
+                              "xs:element": [
+                                {
+                                  "-name": "codes_postaux",
+                                  "-type": "xs:string",
+                                  "-minOccurs": "0",
+                                  "-maxOccurs": "unbounded"
+                                },
+                                {
+                                  "-name": "codes_insee",
+                                  "-type": "xs:string",
+                                  "-minOccurs": "0",
+                                  "-maxOccurs": "unbounded"
+                                },
+                                {
+                                  "-name": "localite_renvoi",
+                                  "-type": "xs:boolean",
+                                  "-minOccurs": "0"
+                                },
+                                {
+                                  "-name": "pole_zu",
+                                  "-type": "xs:boolean",
+                                  "-minOccurs": "0"
+                                },
+                                {
+                                  "-name": "localites_voisines",
+                                  "-type": "localite",
+                                  "-minOccurs": "0",
+                                  "-maxOccurs": "unbounded"
+                                },
+                                {
+                                  "-name": "palier_population",
+                                  "-type": "xs:string",
+                                  "-minOccurs": "0"
+                                },
+                                {
+                                  "-name": "zones_display",
+                                  "-type": "xs:string",
+                                  "-minOccurs": "0",
+                                  "-maxOccurs": "unbounded"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "-name": "region",
+                        "xs:complexContent": {
+                          "xs:extension": {
+                            "-base": "infoMinimal",
+                            "xs:sequence": {
+                              "xs:element": [
+                                {
+                                  "-name": "chef_lieu",
+                                  "-type": "localite",
+                                  "-minOccurs": "0"
+                                },
+                                {
+                                  "-name": "departements",
+                                  "-type": "departement",
+                                  "-minOccurs": "0",
+                                  "-maxOccurs": "unbounded"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "-name": "voie",
+                        "xs:complexContent": {
+                          "xs:extension": {
+                            "-base": "infoMinimal",
+                            "xs:sequence": {
+                              "xs:element": {
+                                "-name": "codes_postaux",
+                                "-type": "xs:string",
+                                "-minOccurs": "0",
+                                "-maxOccurs": "unbounded"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "-name": "zoneUrbaine",
+                        "xs:complexContent": {
+                          "xs:extension": {
+                            "-base": "infoMinimal",
+                            "xs:sequence": {
+                              "xs:element": {
+                                "-name": "pole",
+                                "-type": "localite",
+                                "-minOccurs": "0"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ],
+                    "xs:simpleType": {
+                      "-name": "typeLieu",
+                      "xs:restriction": {
+                        "-base": "xs:string",
+                        "xs:enumeration": [
+                          { "-value": "REGION" },
+                          { "-value": "DEPARTEMENT" },
+                          { "-value": "LOCALITE" },
+                          { "-value": "CODE_POSTAL" },
+                          { "-value": "ARRONDISSEMENT" },
+                          { "-value": "VOIE_REPERTORIEE" },
+                          { "-value": "VOIE_NON_REPERTORIEE" },
+                          { "-value": "ADRESSE_REPERTORIEE" },
+                          { "-value": "ADRESSE_NON_REPERTORIEE" },
+                          { "-value": "POI" },
+                          { "-value": "ZONE_URBAINE" },
+                          { "-value": "TYPE_INVALIDE" }
+                        ]
+                      }
+                    }
+                  }
+                }
+                
+              example: |
+                {
+                  "id": "L03523800",
+                  "type": "LOCALITE",
+                  "libelle": "Rennes",
+                  "geometrie": {
+                      "type": "Point",
+                      "coordinates": [
+                          48.107296,
+                          -1.682348
+                      ]
+                  },
+                  "region": {
+                      "id": "R53",
+                      "libelle": "BRETAGNE"
+                  },
+                  "departement": {
+                      "id": "D035",
+                      "libelle": "ILLE ET VILAINE",
+                      "code_mineralogique": "35"
+                  },
+                  "localite": {
+                      "codes_postaux": [
+                          "35000",
+                          "35200",
+                          "35700"
+                      ],
+                      "codes_insee": [
+                          "35238"
+                      ],
+                      "localite_renvoi": false,
+                      "pole_zu": true,
+                      "localites_voisines": [
+                          {
+                              "id": "L03502400",
+                              "libelle": "Betton"
+                          },
+                          {
+                              "id": "L03505100",
+                              "libelle": "Cesson S��vign��"
+                          },
+                          {
+                              "id": "L03505500",
+                              "libelle": "Chantepie"
+                          },
+                          {
+                              "id": "L03518900",
+                              "libelle": "Montgermont"
+                          },
+                          {
+                              "id": "L03519600",
+                              "libelle": "Mordelles"
+                          },
+                          {
+                              "id": "L03520450",
+                              "libelle": "Noyal Ch��tillon sur Seiche"
+                          },
+                          {
+                              "id": "L03521000",
+                              "libelle": "Pac��"
+                          },
+                          {
+                              "id": "L03524000",
+                              "libelle": "Le Rheu"
+                          },
+                          {
+                              "id": "L03527800",
+                              "libelle": "Saint Gr��goire"
+                          },
+                          {
+                              "id": "L03528100",
+                              "libelle": "Saint Jacques de la Lande"
+                          },
+                          {
+                              "id": "L03535300",
+                              "libelle": "Vezin le Coquet"
+                          }
+                      ],
+                      "palier_population": "62",
+                      "zones_display": [
+                          "002760"
+                      ]
+                  }
+                }
+                
+            application/xml:
+              schema:
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:element name="Lieu" type="lieu"/>
+                  <xs:complexType name="adresse">
+                    <xs:complexContent>
+                      <xs:extension base="infoMinimal">
+                        <xs:sequence>
+                          <xs:element name="numero" type="xs:string" minOccurs="0"/>
+                          <xs:element name="complement_numero" type="xs:string" minOccurs="0"/>
+                          <xs:element name="code_postal" type="xs:string" minOccurs="0"/>
+                        </xs:sequence>
+                      </xs:extension>
+                    </xs:complexContent>
+                  </xs:complexType>
+                  <xs:complexType name="arrondissement">
+                    <xs:complexContent>
+                      <xs:extension base="infoMinimal">
+                        <xs:sequence>
+                          <xs:element name="numero" type="xs:string" minOccurs="0"/>
+                          <xs:element name="codes_postaux" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                          <xs:element name="arrondissements_voisins" type="arrondissement" minOccurs="0" maxOccurs="unbounded"/>
+                          <xs:element name="localites_voisines" type="localite" minOccurs="0" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                      </xs:extension>
+                    </xs:complexContent>
+                  </xs:complexType>
+                  <xs:complexType name="coordonnees">
+                    <xs:sequence>
+                      <xs:element name="type" type="xs:string" minOccurs="0"/>
+                      <xs:element name="coordinates" type="xs:double" minOccurs="1" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                  </xs:complexType>
+                  <xs:complexType name="departement">
+                    <xs:complexContent>
+                      <xs:extension base="infoMinimal">
+                        <xs:sequence>
+                          <xs:element name="code_mineralogique" type="xs:string" minOccurs="0"/>
+                          <xs:element name="departements_voisins" type="departement" minOccurs="0" maxOccurs="unbounded"/>
+                          <xs:element name="prefecture" type="localite" minOccurs="0"/>
+                        </xs:sequence>
+                      </xs:extension>
+                    </xs:complexContent>
+                  </xs:complexType>
+                  <xs:complexType name="infoMinimal">
+                    <xs:sequence>
+                      <xs:element name="id" type="xs:string" minOccurs="0"/>
+                      <xs:element name="libelle" type="xs:string" minOccurs="0"/>
+                      <xs:element name="liens" minOccurs="0">
+                        <xs:complexType>
+                          <xs:sequence>
+                            <xs:element name="entry" minOccurs="0" maxOccurs="unbounded">
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:element name="key" minOccurs="1" type="xs:string"/>
+                                  <xs:element name="value" minOccurs="1" type="xs:string"/>
+                                </xs:sequence>
+                              </xs:complexType>
+                            </xs:element>
+                          </xs:sequence>
+                        </xs:complexType>
+                      </xs:element>
+                      <xs:element name="resource_id" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                  </xs:complexType>
+                  <xs:complexType name="lieu">
+                    <xs:sequence>
+                      <xs:element name="id" type="xs:string" minOccurs="1">
+                        <xs:annotation>
+                          <xs:documentation>
+                            <![CDATA[Identifiant du lieu.]]>
+                          </xs:documentation>
+                        </xs:annotation>
+                      </xs:element>
+                      <xs:element name="type" type="typeLieu" minOccurs="0"/>
+                      <xs:element name="libelle" type="xs:string" minOccurs="0"/>
+                      <xs:element name="geometrie" type="coordonnees" minOccurs="0"/>
+                      <xs:element name="region" type="region" minOccurs="0"/>
+                      <xs:element name="departement" type="departement" minOccurs="0"/>
+                      <xs:element name="zoneUrbaine" type="zoneUrbaine" minOccurs="0"/>
+                      <xs:element name="localite" type="localite" minOccurs="0"/>
+                      <xs:element name="arrondissement" type="arrondissement" minOccurs="0"/>
+                      <xs:element name="voie" type="voie" minOccurs="0"/>
+                      <xs:element name="adresse" type="adresse" minOccurs="0"/>
+                      <xs:element name="resource_id" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                  </xs:complexType>
+                  <xs:complexType name="localite">
+                    <xs:complexContent>
+                      <xs:extension base="infoMinimal">
+                        <xs:sequence>
+                          <xs:element name="codes_postaux" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                          <xs:element name="codes_insee" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                          <xs:element name="localite_renvoi" type="xs:boolean" minOccurs="0"/>
+                          <xs:element name="pole_zu" type="xs:boolean" minOccurs="0"/>
+                          <xs:element name="localites_voisines" type="localite" minOccurs="0" maxOccurs="unbounded"/>
+                          <xs:element name="palier_population" type="xs:string" minOccurs="0"/>
+                          <xs:element name="zones_display" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                      </xs:extension>
+                    </xs:complexContent>
+                  </xs:complexType>
+                  <xs:complexType name="region">
+                    <xs:complexContent>
+                      <xs:extension base="infoMinimal">
+                        <xs:sequence>
+                          <xs:element name="chef_lieu" type="localite" minOccurs="0"/>
+                          <xs:element name="departements" type="departement" minOccurs="0" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                      </xs:extension>
+                    </xs:complexContent>
+                  </xs:complexType>
+                  <xs:complexType name="voie">
+                    <xs:complexContent>
+                      <xs:extension base="infoMinimal">
+                        <xs:sequence>
+                          <xs:element name="codes_postaux" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                      </xs:extension>
+                    </xs:complexContent>
+                  </xs:complexType>
+                  <xs:complexType name="zoneUrbaine">
+                    <xs:complexContent>
+                      <xs:extension base="infoMinimal">
+                        <xs:sequence>
+                          <xs:element name="pole" type="localite" minOccurs="0"/>
+                        </xs:sequence>
+                      </xs:extension>
+                    </xs:complexContent>
+                  </xs:complexType>
+                  <xs:simpleType name="typeLieu">
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value="REGION"/>
+                      <xs:enumeration value="DEPARTEMENT"/>
+                      <xs:enumeration value="LOCALITE"/>
+                      <xs:enumeration value="CODE_POSTAL"/>
+                      <xs:enumeration value="ARRONDISSEMENT"/>
+                      <xs:enumeration value="VOIE_REPERTORIEE"/>
+                      <xs:enumeration value="VOIE_NON_REPERTORIEE"/>
+                      <xs:enumeration value="ADRESSE_REPERTORIEE"/>
+                      <xs:enumeration value="ADRESSE_NON_REPERTORIEE"/>
+                      <xs:enumeration value="POI"/>
+                      <xs:enumeration value="ZONE_URBAINE"/>
+                      <xs:enumeration value="TYPE_INVALIDE"/>
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:schema>
+              #example:
+        
+        400:
+          body:  
+            application/json:
+              example: |
+                {
+                  "status": {
+                    "code": "400 - Bad Request",
+                    "message": "C003 - PARAMETER_ERROR : L'identifiant de lieu n'est pas correct"
+                  },
+                  "class": "class javax.validation.ConstraintViolationException",
+                  "stack": "javax.validation.ConstraintViolationException\n"
+                }
+        
+        404:
+          body:
+            application/json:
+              example: |
+                {
+                  "status": {
+                    code: "404 - Not Found"
+                    message: "B001 - BUSINESS_ERROR : Aucun lieu n'a ��t�� trouv�� pour l'identifiant : L03523801"
+                  },
+                  "class": "class fr.pagesjaunes.commun.rest.exception.NotFoundException",
+                  "stack": "fr.pagesjaunes.commun.rest.exception.NotFoundException: Aucun lieu n'a ��t�� trouv�� pour l'identifiant : L03523801 at fr.pagesjaunes.geo.ws.rest.su.impl.SULieuxImpl.recupererLieu(SULieuxImpl.java:137) \n"
+                }
+        
+        500:
+          body:
+            application/json:
+              example: |
+                {
+                  "status": {
+                    code: "500 - Internal Server Error"
+                  },
+                  "class": "class java.lang.NullPointerException",
+                  "stack": "java.lang.NullPointerException at java.util.regex.Matcher.getTextLength(Matcher.java:1234)"
+                }
+                
+    /departements{mediaTypeExtension}:
+      type: base
+      get:
+        description: R��cuperer les d��partements d'une r��gion
+        responses:
+        
+    /departements_voisins{mediaTypeExtension}:
+      type: base
+      get:
+        description: R��cuperer les d��partements voisins d'un autre d��partement
+        responses:
+          
+    /chef_lieu{mediaTypeExtension}:
+      type: base
+      get:
+        description: R��cuperer le chef lieu d'une r��gion
+        responses:
+          
+    /prefecture{mediaTypeExtension}:
+      type: base
+      get:
+        description: R��cuperer la pr��fecture d'un d��partement
+        responses:
+          
+    /localites_voisines{mediaTypeExtension}:
+      type: base
+      get:
+        description: R��cuperer les localit��s voisines d'une autre localit��
+        responses:
+        
+  /by_code_postal-{cp}:
+    type: base
+    uriParameters:
+      cp:
+          description: Code postal
+          required: true
+    get:
+      description: R��cuperer une/des localit��(s) par son/leur code postal
+      responses:
+      
+/analyse:
+  type: base
+  get:
+    description: Analyse d'un OU
+    queryParameters:
+      ou:
+        description: Chaine de caract��res �� analyser
+        required: true
+        type: string
+      types:
+        description: Filtre sur le type de lieu �� analyser
+        required: false
+        type: string
+        enum:
+          - LOCALITE
+          - REGION
+          - DEPARTEMENT
+    responses:
+    

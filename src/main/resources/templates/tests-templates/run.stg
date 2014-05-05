@@ -1,0 +1,31 @@
+run_file(raml, opts) ::= <<
+src/main/java/fr/pagesjaunes/tools/<opts.title>/Run.java
+>>
+
+run(raml, opts) ::= <<
+package fr.pagesjaunes.tools.<opts.title>;
+
+import java.util.Map;
+import java.util.HashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.junit.internal.TextListener;
+import org.junit.runner.JUnitCore;
+
+public class Run {
+
+  // Logs
+  private static final Logger logger = LoggerFactory.getLogger(Run.class);
+
+  public static void main( String[] args ) {
+  	logger.info("Running tests ...");
+    logger.info("Testing the API : <if(raml.displayName)><raml.displayName><else><opts.title><endif>");
+    JUnitCore oRunner = new JUnitCore();
+    oRunner.addListener(new TextListener(System.out));
+    oRunner.run(<opts.title>_Test.class);
+    logger.info("Ending : <if(raml.displayName)><raml.displayName><else><opts.title><endif>");
+  }
+}
+>>

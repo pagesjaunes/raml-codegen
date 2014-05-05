@@ -1,0 +1,8 @@
+import "class.stg"
+import "pom.stg"
+import "run.stg"
+import "log4j.stg"
+
+rootPath(raml, opts) ::= <<
+<opts.generatedPath>/test-<opts.title>-<raml.version>
+>>

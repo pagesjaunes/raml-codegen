@@ -1,0 +1,32 @@
+delimiters "$", "$"
+
+verbose_file(raml, opts) ::= <<
+robohydra/plugins/$opts.title$_$raml.cleanVersion$/verbose.html
+>>
+
+verbose(raml,opts) ::= <<
+<html>
+	<h1>API : $raml.title$ $if(raml.version)$ / Version: $raml.version$$endif$</h1>
+	<h1>URL : {{{req.method}}} {{{req.url}}}</h1>
+	<hr/>
+	<h1>Status Code: {{{res.statusCode}}}</h1>
+	<h1>Headers: {{^res.headers}}None{{/res.headers}}</h1>
+	{{#res.headers}}
+		<li><code>{{key}} : {{value}}</code></li>
+	{{/res.headers}}
+	<hr/>
+	<h1>Body</h1>
+	<div style="background-color:lightgrey;border-style:dashed; border-color:black; width:90%; margin:auto;border-width:1px; padding:10px;font-size:0.9em">
+		<pre>
+{{body}}
+		</pre>
+	</div>
+	<hr/>
+	<h1>LOGS</h1>
+	<ul>
+	{{#logs}}
+		<li><code>{{.}}</code></li>
+	{{/logs}}
+	</ul>
+</html>
+>>

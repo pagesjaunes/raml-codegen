@@ -1,0 +1,229 @@
+class_file(raml, opts) ::= <<
+src/main/java/fr/pagesjaunes/tools/<opts.title>/<opts.title>_Test.java
+>>
+
+class(raml, opts) ::= <<
+package fr.pagesjaunes.tools.<opts.title>;
+
+import java.util.regex.Pattern;
+import java.util.Iterator;
+
+import static com.jayway.restassured.RestAssured.*;
+import static com.jayway.restassured.matcher.RestAssuredMatchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static com.jayway.restassured.module.jsv.JsonSchemaValidator.*;
+import static com.jayway.restassured.config.HttpClientConfig.*;
+
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.response.Response;
+import com.jayway.restassured.response.Header;
+import com.jayway.restassured.config.HttpClientConfig;
+import com.jayway.restassured.http.ContentType;
+
+import static junit.framework.Assert.*;
+
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import org.junit.Test;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+
+import org.apache.commons.lang3.StringUtils;
+
+ 
+public class <opts.title>_Test {
+
+  // Utility private classes
+  
+  /*
+   * Validating a response against a schema
+   *
+   */
+  private void validateSchema(String aSchema, Response aResponse, String aCT) {
+    assertTrue(aResponse.getContentType().equals(aCT)||aCT.equals("*/*"));
+	if(aResponse.getContentType().endsWith("json")) {
+  		// Test the response against the json schema
+  		assertThat(aResponse.getBody().asString(), matchesJsonSchema(aSchema));
+	} else {
+  		if(aResponse.getContentType().endsWith("xml")) {
+  			// Test the response against the xsd schema
+  			assertThat(aResponse.getBody().asString(), matchesXsd(aSchema));
+  		} else {
+  			// Not xml, not json
+  			assertTrue(false);
+  		}
+	}
+  } 
+  
+  /*
+   * Validating a header or header family (contains {?})
+   */
+  private void validateHeader(String aHeaderName, Response aResponse) {
+    if(aHeaderName.contains("{?}")) {
+    	String oName = StringUtils.replace(aHeaderName, "{?}", "(.*)");
+    	Iterator\<Header> oHeaders = aResponse.getHeaders().iterator();
+    	while(oHeaders.hasNext()) {
+    		if(Pattern.matches(oName, oHeaders.next().getName())) {
+    			return;
+    		}
+    	}
+    	assertTrue(false);
+    } else {
+      assertNotNull(aResponse.getHeaders().get(aHeaderName));
+    }
+  }
+  
+  // End utility private classes
+ 
+  @BeforeClass
+  public static void setUp() throws Exception {
+    RestAssured.basePath = "<if(opts.basePath)><opts.basePath><else><raml.baseUri><endif>";
+    RestAssured.config = config().httpClient(httpClientConfig().httpClientFactory(new HttpClientConfig.HttpClientFactory() {
+
+			@Override
+			public HttpClient createHttpClient() {
+				HttpParams httpParams = new BasicHttpParams();
+		    	HttpConnectionParams.setConnectionTimeout(httpParams, 2000);
+		    	HttpConnectionParams.setSoTimeout(httpParams, 2000);
+		    	return new DefaultHttpClient(httpParams);
+			}
+    		
+    	}));
+  }
+ 
+  @AfterClass
+  public static void tearDown() {
+  }
+ 
+  <methods(raml.resources)>
+}
+>>
+
+methods(resources) ::= "<resources.keys:{k | <method(k, resources.(k))>}>"
+
+validate(body,c) ::= <<
+<if(body.schema)>
+validateSchema("<trim(body.schemaEscape)>", aResponse,"<c>");
+<endif>
+>>
+
+method(key, resource) ::= <<
+
+// Private validation of the responses : <key>
+private void validate_<resource.methodUri>(Response aResponse, String aMethod, String aContentType) {
+<resource.actions.keys: { k |	
+	if(aMethod.equals("<k>")) {
+		validateHeaders_<resource.methodUri>_<k>(aResponse);
+<resource.actions.(k).responses.keys: { s | 
+		if(aResponse.getStatusCode()==<s>) {
+<resource.actions.(k).responses.(s).body.keys: {c |
+			if(aContentType.equals("<c>")) {
+				<validate(resource.actions.(k).responses.(s).body.(c), c)>
+				return;
+			\} 
+}>
+		\} 
+}>
+	\} 
+}>
+	assertTrue(false);
+} 
+
+// <key>
+
+<resource.actions.keys:{ak | <(ak)({<resource.methodUri>_<ak>},resource.actions.(ak))>}>
+
+<methods(resource.resources)>
+>>
+
+testMethod(name, methodBody) ::= <<
+@Test
+public void test_<name>() {	 
+	 <methodBody>
+}
+
+>>
+
+validateHeaders(status, response) ::= <<
+if(aResponse.getStatusCode()==<status>) {
+<response.headers.keys:{hk |
+	<if(response.headers.(hk).required)>
+	validateHeader("<hk>",aResponse);
+	<endif>
+	return;
+}>
+}
+>>
+
+
+GET(methodName, action, verb="get", formParams=false, noValidateHeaders=false) ::= <<
+<if(!noValidateHeaders)>
+// Validate Headers Method for : <methodName>
+private void validateHeaders_<methodName>(Response aResponse) {
+	<action.responses.keys:{rk | <validateHeaders(rk, action.responses.(rk))>}>
+}
+<endif>
+
+// <verb> : <methodName> with 2xx response
+<responses_OK(methodName, action.ok, verb, formParams)>
+>>
+
+DELETE(methodName, action) ::= <<
+	<GET(methodName, action, "delete")>
+>>
+
+POST(methodName, action, verb="post") ::= <<
+<if(action.normalMethod)>
+	<GET(methodName, action, verb)>
+<endif>
+<if(action.hasFormParams)>
+	<GET(methodName, action, verb, { <action.formParams: {fp | 	
+	formParam("<fp.key>", "<fp.value>"). }> }, action.normalMethod)>
+<endif>
+>>
+
+PUT(methodName, action) ::= <<
+	<POST(methodName, action, "put")>
+>>
+
+mandatoryHeaders(response) ::= <<
+<if(response.mandatoryHeaders)>
+	headers(<response.mandatoryHeaders.keys:{mh | "<mh>","<response.mandatoryHeaders.(mh)>"}>).<endif> >>
+
+responses_OK(responseName,response, verb, formParams) ::= <<
+// Status : 2xx
+<response.combinations: {c | <response.response.body.keys: {k | <body({<responseName>_OK}, response, k, response.response.body.(k),c, true, verb, formParams)>}> }>
+// Status : 4xx
+<response.falseCombinations: {c | <response.response.body.keys: {k | <body({<responseName>_KO}, response, k, response.response.body.(k),c, false, verb, formParams)>}> }>
+>>
+
+actionBody(response,mimeType, retry=true) ::= <<
+<if(response.action.body.(mimeType).example)>
+	body("<response.action.body.(mimeType).exampleEscape>").<elseif(retry)><actionBody(response, "*/*", false)><endif> >>
+
+body(bodyName,response, mimeType, body, url, flag, verb, formParams) ::= <<
+
+<testMethod({<bodyName><if(formParams)>_form<endif>_<if(flag)>2xx<else>4xx<endif>_<body.name>_<url.name>}, {
+// MimeType : <mimeType>
+Response oResponse =
+given().<mandatoryHeaders(response)><if(formParams)><formParams><else><actionBody(response, mimeType)><endif>
+<if(formParams)>	contentType(ContentType.URLENC).header("accept","<mimeType>").<else>	contentType("<mimeType>").<endif>
+when().
+	<verb>("<url>").
+then().
+extract().
+	response();
+assertEquals(oResponse.getStatusCode()/100,<if(flag)>2<else>4<endif>);
+<if(body.isSpecific)>
+assertEquals(oResponse.getContentType(),"<body.type>");
+<endif>
+validate_<response.action.resource.methodUri>(oResponse, "<action.type>", "<mimeType>");
+}
+
+)>
+>>

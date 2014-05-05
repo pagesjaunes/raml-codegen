@@ -1,0 +1,137 @@
+customer(raml, opts) ::= <<
+// Overload the defaut behaviour of the generated robohydra plugin generated from the RAML file
+var fs = require('fs');
+var mustache = require('mustache');
+
+var CUSTOM_FILE_NAME = "custom.json";
+
+function normPath(aPath) {
+  if(typeof aPath === 'undefined' || aPath == null) {
+    aPath=__dirname;
+  }
+  if(aPath.charAt(0) != '/') {
+  	aPath = __dirname+"/"+aPath;
+  }
+  if(aPath.charAt(aPath.length-1) != '/') {
+    aPath += '/';
+  }
+  return aPath;
+}
+
+function loadCustom(aPath) {
+  if(fs.existsSync(normPath(aPath)+CUSTOM_FILE_NAME)) {
+    try {
+      return JSON.parse(fs.readFileSync(normPath(aPath)+CUSTOM_FILE_NAME, "utf8"));
+    } catch (err) {
+      console.log("Bad custom.json file:"+err);
+      return null;
+    }
+  }
+  return null;
+}
+
+function contentForRule(aPath, aRule, params, res) {
+  //console.log("contentForRule");
+  if(typeof aRule.pattern !== 'undefined' && aRule.pattern !=null) {
+    var oPattern = new RegExp(aRule.pattern);
+    if(oPattern.test(params.url)) {
+      //console.log("OK ...");
+      // OK : regexp matchs params.
+      res.log("A rule match in the custom file : "+aRule.pattern);
+      if(typeof aRule.content !== 'undefined' && aRule.content != null) {
+      	res.log("Content for this rule : "+aRule.content);
+      	var found=params.url.match(oPattern);
+      	var replace$x = function(match,$1) {
+      		return typeof found[$1] === 'undefined'?"":found[$1];
+      	};
+      	var content = aRule.content.replace(/\$(\d+)/g, replace$x);
+      	res.log("File name for the content: "+content);
+        if(fs.existsSync(normPath(aPath)+content)) {
+          if(typeof aRule.statusCode != 'undefined' && aRule.statusCode !=null) {
+            res.log("Override the response status code with: "+aRule.statusCode);
+            res.statusCode = aRule.statusCode;
+          }
+          if(typeof aRule.headers != 'undefined' && aRule.headers !=null) {
+            res.log("Override the response headers with: "+JSON.stringify(aRule.headers));
+            res.headers = aRule.headers;
+          }
+          res.send(mustache.render(fs.readFileSync(normPath(aPath)+content, "utf8").replace(/\$(\d+)/g, replace$x), params));
+          return true;
+        } else {
+        	res.log("No file exists with this name");
+        }
+      } else {
+        res.log("But no rule content for this rule");
+      }
+    }
+  }
+  return false;
+}
+
+function matchParams(aPath,name,method,params, custom, res) {
+  if(custom !=null) {
+    for(var i in custom) {
+      var oNames=custom[i];
+      //console.log(oNames.name+" ? "+name);
+      if(oNames.name == name) { 
+        if(typeof oNames[method] !== 'undefined') {
+          var oRules = oNames[method];
+          for(var oRule in oRules) {
+            if(contentForRule(aPath,oRules[oRule], params,res)) {
+              return;
+            }
+          }
+        }
+        return;
+      }
+    }
+  }
+  return;
+}
+
+function create(aPath) {
+
+  var oCustom;
+  var hotReload = function() {
+    oCustom = loadCustom(aPath);
+    setTimeout(hotReload,5000);
+  };
+  hotReload();
+  return function(name,method,params, res) {
+    if(oCustom != null) {
+      matchParams(aPath,name, method,params, oCustom, res);
+    } else { 
+      res.log("Warning, no custom file. Perhaps a bad syntax");
+      res.log("Please, check the " + normPath(aPath)+CUSTOM_FILE_NAME + "file");
+    }
+  };
+}
+
+var Customer = function(aPath) { 
+    this.loader = create(aPath);
+    this.get = function(name,method, params,res) {
+        if(typeof this.loader === 'undefined') {
+            console.log("Customer Error: no loader. Perhaps a bad initialisation");
+            return;
+        }
+        this.loader(name,method,params,res);
+    };
+};
+
+function verboseResponse(req, fake, res, body, logs) {
+	var oHeaders=[];
+    for(var i in res.headers) {
+    	if(typeof fake.headers[i] === 'undefined'  && res.headers.hasOwnProperty(i)) { oHeaders.push({key:i, value:res.headers[i]}); }
+    }
+    for (var i in fake.headers) {
+    	if(fake.headers.hasOwnProperty(i)) {oHeaders.push({key:i, value:fake.headers[i]});}
+    }
+    fake.headers=oHeaders;
+    //console.log(oHeaders);
+	res.headers["Content-Type"]="text/html";
+	res.statusCode=200;
+	res.send(mustache.render(fs.readFileSync(__dirname+"/verbose.html", "utf8"),{req:req, res:fake, body:body, logs:logs}));
+}
+
+// module.exports = Customer;
+>>

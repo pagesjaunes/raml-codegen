@@ -1,0 +1,42 @@
+custom_file(raml, opts) ::= <<
+robohydra/plugins/<opts.title>_<raml.cleanVersion>/custom.json
+>>
+
+availableParams(anAction) ::= <<
+<if(anAction.queryParameters.keys)><anAction.queryParameters.keys: {kp | [<kp>] }><else>NONE<endif> >>
+
+objectMethod(aMethodName, aResource) ::= <<
+"<aMethodName>": [
+	{  
+	  "comment": "Available params are: <availableParams(aResource.actions.(aMethodName))>",
+	  "pattern": null,
+	  "statusCode": null,
+	  "headers": null,
+	  "content": null 
+	}
+]
+>>
+
+object(aResource) ::= <<
+{
+	"name":"<aResource.uri_express>"<if(aResource.actions.keys)>,
+	<trunc(aResource.actions.keys): {ak | <objectMethod(ak,aResource)>,
+	}>
+	<objectMethod(last(aResource.actions.keys), aResource)><endif>
+}
+>>
+
+
+name(aResource) ::= <<
+<object(aResource)><if(aResource.resources)>,
+<names(aResource.resources)><endif> >>
+
+names(someResources) ::= <<
+<if(someResources.keys)>
+<name(someResources.(first(someResources.keys)))><rest(someResources.keys):{ kr | ,<name(someResources.(kr))> }><endif> >>
+
+custom(raml, opts) ::= <<
+[
+<names(raml.resources)>
+]
+>>

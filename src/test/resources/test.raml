@@ -1,0 +1,203 @@
+#%RAML 0.8
+---
+title: Test API
+version: v1
+baseUri: http://{apiDomain}.e-bookmobile.com/{version}
+mediaType: application/json
+baseUriParameters:
+  apiDomain:
+    description: |
+      The sub-domain at which the API is accessible. Most API calls are sent to https://api.dropbox.com
+    enum: [ "www" ]
+traits:
+  - loggable:
+      queryParameters:
+        log:
+          type: boolean
+          example: true
+    searchable:
+      queryParameters:
+        query:
+          type: string
+          example: Au revoir les enfants
+
+/books:
+  is: [loggable, searchable]
+  displayName: Books
+  baseUriParameters:
+    apiDomain:
+      enum: [ "books" ]
+  delete:
+    description: Delete a book
+    headers:
+      X-Immediate:
+            description: |
+              This book must be destroyed immediately
+            example: NO
+            required: yes
+    responses:
+      204:
+  get: 
+    description: Retrieve all books
+    queryParameters:
+      author:
+        displayName: Author
+        type: string
+        description: An author's full name
+        example: Roach
+        required: true
+      token:
+        displayName: Token
+        type: string
+        description: A random token
+        example: 1ABE
+        required: true
+      edition:
+        displayName: Edition
+        type: string
+        description: An edition
+        example: OReilly
+        required: false
+      page:
+        displayName: page
+        type: integer
+        description: A page number
+        example: 2
+        required: false
+    body:
+      application/json:
+        example: |
+          {"a":"b"}
+      "*/*":
+        example: | 
+          z,d,e,r
+    responses:
+      200:
+        headers:
+          X-waiting-period:
+            description: |
+              The number of seconds to wait before you can attempt to make a request again.
+            type: integer
+            required: yes
+        body:
+          text/xml:
+            schema: |
+              <xs:schema attributeFormDefault="unqualified"
+                       elementFormDefault="qualified"
+                       xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <xs:element name="api-request">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element type="xs:string" name="input"/>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:schema>
+            example: | 
+              <books><book  title='ceci est un livre'/><book  title='ceci est un autre livre'/></books> 
+          application/json:
+            schema: !include schema.json
+            example: |
+              [
+                {
+                   "data": {
+                     "id": "SbBGk",
+                     "title": "Stiff: The Curious Lives of Human Cadavers",
+                     "description": null,
+                     "datetime": 1341533193,
+                     "genre": "science",
+                     "author": "Mary Roach",
+                     "link": "http://e-bookmobile.com/books/Stiff",
+                   },
+                   "success": true,
+                   "status": 200
+                }
+              ]
+      400:
+        body:
+          application/json:
+            example: | 
+              { "status":400, "error":"an error 400 has occured"}
+          "*/*":
+            example: | 
+              An error 400 has occured
+  /{bookTitle}:
+    baseUriParameters:
+      apiDomain:
+        enum: [ "book" ]
+    uriParameters:
+        bookTitle:
+          displayName: Book title
+          type: string
+          example: Madame Bovary
+    get:
+      description: Retrieve a specific book title
+      body:
+        application/json:
+          example: |
+            {"c":"d"}
+      responses:
+        200:
+          body:
+            text/xml:
+              example: |
+                 <book title="Belle du seigneur"/>
+            "*/*":
+              example: |
+                {
+                   "data": {
+                     "id": "SbBGk",
+                     "title": "Stiff: The Curious Lives of Human Cadavers",
+                     "description": null,
+                     "datetime": 1341533193,
+                     "genre": "science",
+                     "author": "Mary Roach",
+                     "link": "http://e-bookmobile.com/books/Stiff",
+                   },
+                   "success": true,
+                   "status": 200
+                }
+              schema: |
+                {
+                  "$schema": "http://json-schema.org/draft-03/schema",
+                  "properties": {
+                    "input": {
+                    "required": false,
+                      "type": "string"
+                    }
+                  },
+                  "required": false,
+                  "type": "object"
+                }
+    post:
+      description: Add a book
+      body:
+        application/x-www-form-urlencoded:
+          formParameters:
+            title:
+                 description: |
+                   A title
+                 type: string
+                 required: true
+                 example: La sagesse de la mer
+        application/json:
+          example: |
+            {"title":"De l'eau dans les fonds"}
+      responses:
+        201:
+    put:
+      description: Add a book
+      body:
+        application/x-www-form-urlencoded:
+          formParameters:
+            title:
+                 description: |
+                   A title
+                 type: string
+                 required: true
+                 example: Seul le silence
+        application/json:
+          example: |
+            {"title":"Un pays à l'aube"}
+      responses:
+        204:

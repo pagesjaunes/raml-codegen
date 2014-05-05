@@ -1,0 +1,9 @@
+import "plugin.stg"
+import "config.stg"
+import "package.stg"
+import "custom.stg"
+import "verbose.stg"
+
+rootPath(raml, opts) ::= <<
+<opts.generatedPath>/robohydra-<opts.title>-<raml.version>
+>>
