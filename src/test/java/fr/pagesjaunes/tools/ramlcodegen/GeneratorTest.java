@@ -6,22 +6,22 @@ package fr.pagesjaunes.tools.ramlcodegen;
 //import org.apache.commons.lang3.StringUtils;
 
 //import com.jayway.restassured.http.ContentType;
-import java.util.Iterator;
-import java.util.regex.Pattern;
+//import java.util.Iterator;
+//import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
+//import org.apache.commons.lang3.StringUtils;
 
-import com.jayway.restassured.response.Header;
-import com.jayway.restassured.response.Response;
+//import com.jayway.restassured.response.Header;
+//import com.jayway.restassured.response.Response;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import static com.jayway.restassured.RestAssured.*;
-import static com.jayway.restassured.matcher.RestAssuredMatchers.*;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static com.jayway.restassured.module.jsv.JsonSchemaValidator.*;
+//import static com.jayway.restassured.RestAssured.*;
+//import static com.jayway.restassured.matcher.RestAssuredMatchers.*;
+//import static org.hamcrest.Matchers.*;
+//import static org.hamcrest.MatcherAssert.assertThat;
+//import static com.jayway.restassured.module.jsv.JsonSchemaValidator.*;
 
 /**
  * Unit test for simple App.
@@ -72,7 +72,7 @@ public class GeneratorTest
     {
     	Generator oG=Generator.build("test.raml");
         assertNotNull(oG);
-        oG.generate("mocks","target/generated-sources");
+        oG.generate("tests","target/generated-sources");
     }
     
     /**
@@ -80,9 +80,9 @@ public class GeneratorTest
      */
     public void testGeo()
     {
-//    	Generator oG=Generator.build("api_geo.raml");
-//        assertNotNull(oG);
-//        oG.generate("mocks","target/generated-sources");
+    	Generator oG=Generator.build("api_geo.raml");
+        assertNotNull(oG);
+        oG.generate("tests","target/generated-sources");
     }
     
     /**

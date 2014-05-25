@@ -17,7 +17,11 @@ public class Resolver {
 	
 	public static String getValueParam(AbstractParam aParam, String aName, String aWarning) {
 		if(aParam.getExample()!=null) {
-			return aParam.getExample();
+			String oReturn = aParam.getExample();
+			if(oReturn.endsWith("\n")) {
+				oReturn=oReturn.substring(0, oReturn.length()-1);
+			}
+			return oReturn;
 		}
 		if(aParam.getDefaultValue()!=null) {
 			return aParam.getDefaultValue();

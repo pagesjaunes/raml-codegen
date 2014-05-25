@@ -12,34 +12,425 @@ resourceTypes:
           required: false
 traits:
   - paged:
-      usage: A appliquer quand la pagination est n��cessaire
-      description: Positionne les param��tres n��cessaires �� la pagination
+      usage: A appliquer quand la pagination est nécessaire
+      description: Positionne les paramètres nécessaires à la pagination
       queryParameters:
         offset:
           description: Curseur dans la liste
           type: number
         limit:
-          description: Nombre d'��lements max �� remonter
+          description: Nombre d'élements max à remonter
           type: number
-
+          
+schemas:
+  - Lieu_xml: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:element name="Lieu" type="lieu"/>
+        <xs:complexType name="adresse">
+          <xs:complexContent>
+            <xs:extension base="infoMinimal">
+              <xs:sequence>
+                <xs:element name="numero" type="xs:string" minOccurs="0"/>
+                <xs:element name="complement_numero" type="xs:string" minOccurs="0"/>
+                <xs:element name="code_postal" type="xs:string" minOccurs="0"/>
+              </xs:sequence>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="arrondissement">
+          <xs:complexContent>
+            <xs:extension base="infoMinimal">
+              <xs:sequence>
+                <xs:element name="numero" type="xs:string" minOccurs="0"/>
+                <xs:element name="codes_postaux" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="arrondissements_voisins" type="arrondissement" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="localites_voisines" type="localite" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:sequence>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="coordonnees">
+          <xs:sequence>
+            <xs:element name="type" type="xs:string" minOccurs="0"/>
+            <xs:element name="coordinates" type="xs:double" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="departement">
+          <xs:complexContent>
+            <xs:extension base="infoMinimal">
+              <xs:sequence>
+                <xs:element name="code_mineralogique" type="xs:string" minOccurs="0"/>
+                <xs:element name="departements_voisins" type="departement" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="prefecture" type="localite" minOccurs="0"/>
+              </xs:sequence>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="infoMinimal">
+          <xs:sequence>
+            <xs:element name="id" type="xs:string" minOccurs="0"/>
+            <xs:element name="libelle" type="xs:string" minOccurs="0"/>
+            <xs:element name="liens" minOccurs="0">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="entry" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="key" minOccurs="1" type="xs:string"/>
+                        <xs:element name="value" minOccurs="1" type="xs:string"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="resource_id" type="xs:string" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="lieu">
+          <xs:sequence>
+            <xs:element name="id" type="xs:string" minOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  <![CDATA[Identifiant du lieu.]]>
+                </xs:documentation>
+              </xs:annotation>
+            </xs:element>
+            <xs:element name="type" type="typeLieu" minOccurs="0"/>
+            <xs:element name="libelle" type="xs:string" minOccurs="0"/>
+            <xs:element name="geometrie" type="coordonnees" minOccurs="0"/>
+            <xs:element name="region" type="region" minOccurs="0"/>
+            <xs:element name="departement" type="departement" minOccurs="0"/>
+            <xs:element name="zoneUrbaine" type="zoneUrbaine" minOccurs="0"/>
+            <xs:element name="localite" type="localite" minOccurs="0"/>
+            <xs:element name="arrondissement" type="arrondissement" minOccurs="0"/>
+            <xs:element name="voie" type="voie" minOccurs="0"/>
+            <xs:element name="adresse" type="adresse" minOccurs="0"/>
+            <xs:element name="resource_id" type="xs:string" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="localite">
+          <xs:complexContent>
+            <xs:extension base="infoMinimal">
+              <xs:sequence>
+                <xs:element name="codes_postaux" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="codes_insee" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="localite_renvoi" type="xs:boolean" minOccurs="0"/>
+                <xs:element name="pole_zu" type="xs:boolean" minOccurs="0"/>
+                <xs:element name="localites_voisines" type="localite" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="palier_population" type="xs:string" minOccurs="0"/>
+                <xs:element name="zones_display" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:sequence>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="region">
+          <xs:complexContent>
+            <xs:extension base="infoMinimal">
+              <xs:sequence>
+                <xs:element name="chef_lieu" type="localite" minOccurs="0"/>
+                <xs:element name="departements" type="departement" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:sequence>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="voie">
+          <xs:complexContent>
+            <xs:extension base="infoMinimal">
+              <xs:sequence>
+                <xs:element name="codes_postaux" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:sequence>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="zoneUrbaine">
+          <xs:complexContent>
+            <xs:extension base="infoMinimal">
+              <xs:sequence>
+                <xs:element name="pole" type="localite" minOccurs="0"/>
+              </xs:sequence>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+        <xs:simpleType name="typeLieu">
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="REGION"/>
+            <xs:enumeration value="DEPARTEMENT"/>
+            <xs:enumeration value="LOCALITE"/>
+            <xs:enumeration value="CODE_POSTAL"/>
+            <xs:enumeration value="ARRONDISSEMENT"/>
+            <xs:enumeration value="VOIE_REPERTORIEE"/>
+            <xs:enumeration value="VOIE_NON_REPERTORIEE"/>
+            <xs:enumeration value="ADRESSE_REPERTORIEE"/>
+            <xs:enumeration value="ADRESSE_NON_REPERTORIEE"/>
+            <xs:enumeration value="POI"/>
+            <xs:enumeration value="ZONE_URBAINE"/>
+            <xs:enumeration value="TYPE_INVALIDE"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:schema>
+      
+  - Lieu_json: &Lieu_json |
+      {
+          "type": "object",
+          "$schema": "http://json-schema.org/draft-03/schema",
+          "id": "http://jsonschema.net",
+          "required": false,
+          "properties": {
+              "adresse": {
+                  "type": "object",
+                  "id": "http://jsonschema.net/adresse",
+                  "required": false,
+                  "properties": {
+                      "id": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/adresse/id",
+                          "required": false
+                      },
+                      "libelle": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/adresse/libelle",
+                          "required": false
+                      },
+                      "numero": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/adresse/numero",
+                          "required": false
+                      }
+                  }
+              },
+              "departement": {
+                  "type": "object",
+                  "id": "http://jsonschema.net/departement",
+                  "required": false,
+                  "properties": {
+                      "code_mineralogique": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/departement/code_mineralogique",
+                          "required": false
+                      },
+                      "id": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/departement/id",
+                          "required": false
+                      },
+                      "libelle": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/departement/libelle",
+                          "required": false
+                      }
+                  }
+              },
+              "geometrie": {
+                  "type": "object",
+                  "id": "http://jsonschema.net/geometrie",
+                  "required": false,
+                  "properties": {
+                      "coordinates": {
+                          "type": "array",
+                          "id": "http://jsonschema.net/geometrie/coordinates",
+                          "required": false,
+                          "items": {
+                              "type": "number",
+                              "id": "http://jsonschema.net/geometrie/coordinates/0",
+                              "required": false
+                          }
+                      },
+                      "type": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/geometrie/type",
+                          "required": false
+                      }
+                  }
+              },
+              "id": {
+                  "type": "string",
+                  "id": "http://jsonschema.net/id",
+                  "required": false
+              },
+              "libelle": {
+                  "type": "string",
+                  "id": "http://jsonschema.net/libelle",
+                  "required": false
+              },
+              "localite": {
+                  "type": "object",
+                  "id": "http://jsonschema.net/localite",
+                  "required": false,
+                  "properties": {
+                      "codes_insee": {
+                          "type": "array",
+                          "id": "http://jsonschema.net/localite/codes_insee",
+                          "required": false,
+                          "items": {
+                              "type": "string",
+                              "id": "http://jsonschema.net/localite/codes_insee/0",
+                              "required": false
+                          }
+                      },
+                      "codes_postaux": {
+                          "type": "array",
+                          "id": "http://jsonschema.net/localite/codes_postaux",
+                          "required": false,
+                          "items": {
+                              "type": "string",
+                              "id": "http://jsonschema.net/localite/codes_postaux/0",
+                              "required": false
+                          }
+                      },
+                      "id": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/localite/id",
+                          "required": false
+                      },
+                      "libelle": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/localite/libelle",
+                          "required": false
+                      },
+                      "localite_renvoi": {
+                          "type": "boolean",
+                          "id": "http://jsonschema.net/localite/localite_renvoi",
+                          "required": false
+                      },
+                      "localites_voisines": {
+                          "type": "array",
+                          "id": "http://jsonschema.net/localite/localites_voisines",
+                          "required": false,
+                          "items": {
+                              "type": "object",
+                              "id": "http://jsonschema.net/localite/localites_voisines/0",
+                              "required": false,
+                              "properties": {
+                                  "id": {
+                                      "type": "string",
+                                      "id": "http://jsonschema.net/localite/localites_voisines/0/id",
+                                      "required": false
+                                  },
+                                  "libelle": {
+                                      "type": "string",
+                                      "id": "http://jsonschema.net/localite/localites_voisines/0/libelle",
+                                      "required": false
+                                  }
+                              }
+                          }
+                      },
+                      "palier_population": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/localite/palier_population",
+                          "required": false
+                      },
+                      "pole_zu": {
+                          "type": "boolean",
+                          "id": "http://jsonschema.net/localite/pole_zu",
+                          "required": false
+                      },
+                      "zones_display": {
+                          "type": "array",
+                          "id": "http://jsonschema.net/localite/zones_display",
+                          "required": false,
+                          "items": {
+                              "type": "string",
+                              "id": "http://jsonschema.net/localite/zones_display/0",
+                              "required": false
+                          }
+                      }
+                  }
+              },
+              "region": {
+                  "type": "object",
+                  "id": "http://jsonschema.net/region",
+                  "required": false,
+                  "properties": {
+                      "id": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/region/id",
+                          "required": false
+                      },
+                      "libelle": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/region/libelle",
+                          "required": false
+                      }
+                  }
+              },
+              "type": {
+                  "type": "string",
+                  "id": "http://jsonschema.net/type",
+                  "required": false
+              },
+              "voie": {
+                  "type": "object",
+                  "id": "http://jsonschema.net/voie",
+                  "required": false,
+                  "properties": {
+                      "codes_postaux": {
+                          "type": "array",
+                          "id": "http://jsonschema.net/voie/codes_postaux",
+                          "required": false,
+                          "items": {
+                              "type": "string",
+                              "id": "http://jsonschema.net/voie/codes_postaux/0",
+                              "required": false
+                          }
+                      },
+                      "id": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/voie/id",
+                          "required": false
+                      },
+                      "libelle": {
+                          "type": "string",
+                          "id": "http://jsonschema.net/voie/libelle",
+                          "required": false
+                      }
+                  }
+              }
+          }
+      }
+      
+  - Erreur_xml: | 
+      <xml></xml>
+      
+  - Erreur_json: |
+      {} 
+      
 /lieux:
   get:
     description: Revoit les lieux
     queryParameters:
       types:
-        description: Filtre sur le type de lieu �� analyser
+        description: Filtre sur le type de lieu à analyser
         required: false
         type: string
         enum:
           - LOCALITE
           - REGION
           - DEPARTEMENT
+          - CODE_POSTAL
+          - ARRONDISSEMENT
+          - VOIE_REPERTORIEE
+          - VOIE_NON_REPERTORIEE
+          - ADRESSE_REPERTORIEE
+          - ADRESSE_NON_REPERTORIEE
+          - POI
+          - ZONE_URBAINE
+          - TYPE_INVALIDE
+              
     responses:
-      500:
+      501:
         body:
-          "*/*": 
-            example: NOT YET IMPLEMENTED ... And will never be implemented !
-  /{id}{mediaTypeExtension}:
+          application/json:
+            example: |
+              {
+                "status": {
+                    "code": "501 - Not Implemented",
+                    "message": "A001 - GENERAL_ERROR : Not Yet Implemented"
+                  }
+              }
+            
+  /{id}:
     type: base
     uriParameters:
       id:
@@ -48,383 +439,14 @@ traits:
         required: true
         pattern: ^[A-Z|a-z][0-9|\W]+$
         example: |
-          L03523800 pour une localit�� (Rennes),
-          D035 pour un d��partement (Ille & Vilaine),
-          R53 pour une r��gion (Bretagne)
+          L03523800
     get:
-      description: R��cup��rer un lieu par son identifiant
+      description: Récupérer un lieu par son identifiant
       responses:
         200:
           body:
             application/json:
-              schema: |
-                {
-                  "xs:schema": {
-                    "-xmlns:xs": "http://www.w3.org/2001/XMLSchema",
-                    "-version": "1.0",
-                    "xs:element": {
-                      "-name": "Lieu",
-                      "-type": "lieu"
-                    },
-                    "xs:complexType": [
-                      {
-                        "-name": "adresse",
-                        "xs:complexContent": {
-                          "xs:extension": {
-                            "-base": "infoMinimal",
-                            "xs:sequence": {
-                              "xs:element": [
-                                {
-                                  "-name": "numero",
-                                  "-type": "xs:string",
-                                  "-minOccurs": "0"
-                                },
-                                {
-                                  "-name": "complement_numero",
-                                  "-type": "xs:string",
-                                  "-minOccurs": "0"
-                                },
-                                {
-                                  "-name": "code_postal",
-                                  "-type": "xs:string",
-                                  "-minOccurs": "0"
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      },
-                      {
-                        "-name": "arrondissement",
-                        "xs:complexContent": {
-                          "xs:extension": {
-                            "-base": "infoMinimal",
-                            "xs:sequence": {
-                              "xs:element": [
-                                {
-                                  "-name": "numero",
-                                  "-type": "xs:string",
-                                  "-minOccurs": "0"
-                                },
-                                {
-                                  "-name": "codes_postaux",
-                                  "-type": "xs:string",
-                                  "-minOccurs": "0",
-                                  "-maxOccurs": "unbounded"
-                                },
-                                {
-                                  "-name": "arrondissements_voisins",
-                                  "-type": "arrondissement",
-                                  "-minOccurs": "0",
-                                  "-maxOccurs": "unbounded"
-                                },
-                                {
-                                  "-name": "localites_voisines",
-                                  "-type": "localite",
-                                  "-minOccurs": "0",
-                                  "-maxOccurs": "unbounded"
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      },
-                      {
-                        "-name": "coordonnees",
-                        "xs:sequence": {
-                          "xs:element": [
-                            {
-                              "-name": "type",
-                              "-type": "xs:string",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "coordinates",
-                              "-type": "xs:double",
-                              "-minOccurs": "1",
-                              "-maxOccurs": "unbounded"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "-name": "departement",
-                        "xs:complexContent": {
-                          "xs:extension": {
-                            "-base": "infoMinimal",
-                            "xs:sequence": {
-                              "xs:element": [
-                                {
-                                  "-name": "code_mineralogique",
-                                  "-type": "xs:string",
-                                  "-minOccurs": "0"
-                                },
-                                {
-                                  "-name": "departements_voisins",
-                                  "-type": "departement",
-                                  "-minOccurs": "0",
-                                  "-maxOccurs": "unbounded"
-                                },
-                                {
-                                  "-name": "prefecture",
-                                  "-type": "localite",
-                                  "-minOccurs": "0"
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      },
-                      {
-                        "-name": "infoMinimal",
-                        "xs:sequence": {
-                          "xs:element": [
-                            {
-                              "-name": "id",
-                              "-type": "xs:string",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "libelle",
-                              "-type": "xs:string",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "liens",
-                              "-minOccurs": "0",
-                              "xs:complexType": {
-                                "xs:sequence": {
-                                  "xs:element": {
-                                    "-name": "entry",
-                                    "-minOccurs": "0",
-                                    "-maxOccurs": "unbounded",
-                                    "xs:complexType": {
-                                      "xs:sequence": {
-                                        "xs:element": [
-                                          {
-                                            "-name": "key",
-                                            "-minOccurs": "1",
-                                            "-type": "xs:string"
-                                          },
-                                          {
-                                            "-name": "value",
-                                            "-minOccurs": "1",
-                                            "-type": "xs:string"
-                                          }
-                                        ]
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "-name": "resource_id",
-                              "-type": "xs:string",
-                              "-minOccurs": "0"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "-name": "lieu",
-                        "xs:sequence": {
-                          "xs:element": [
-                            {
-                              "-name": "id",
-                              "-type": "xs:string",
-                              "-minOccurs": "1",
-                              "xs:annotation": {
-                                "xs:documentation": "Identifiant du lieu."
-                              }
-                            },
-                            {
-                              "-name": "type",
-                              "-type": "typeLieu",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "libelle",
-                              "-type": "xs:string",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "geometrie",
-                              "-type": "coordonnees",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "region",
-                              "-type": "region",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "departement",
-                              "-type": "departement",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "zoneUrbaine",
-                              "-type": "zoneUrbaine",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "localite",
-                              "-type": "localite",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "arrondissement",
-                              "-type": "arrondissement",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "voie",
-                              "-type": "voie",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "adresse",
-                              "-type": "adresse",
-                              "-minOccurs": "0"
-                            },
-                            {
-                              "-name": "resource_id",
-                              "-type": "xs:string",
-                              "-minOccurs": "0"
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "-name": "localite",
-                        "xs:complexContent": {
-                          "xs:extension": {
-                            "-base": "infoMinimal",
-                            "xs:sequence": {
-                              "xs:element": [
-                                {
-                                  "-name": "codes_postaux",
-                                  "-type": "xs:string",
-                                  "-minOccurs": "0",
-                                  "-maxOccurs": "unbounded"
-                                },
-                                {
-                                  "-name": "codes_insee",
-                                  "-type": "xs:string",
-                                  "-minOccurs": "0",
-                                  "-maxOccurs": "unbounded"
-                                },
-                                {
-                                  "-name": "localite_renvoi",
-                                  "-type": "xs:boolean",
-                                  "-minOccurs": "0"
-                                },
-                                {
-                                  "-name": "pole_zu",
-                                  "-type": "xs:boolean",
-                                  "-minOccurs": "0"
-                                },
-                                {
-                                  "-name": "localites_voisines",
-                                  "-type": "localite",
-                                  "-minOccurs": "0",
-                                  "-maxOccurs": "unbounded"
-                                },
-                                {
-                                  "-name": "palier_population",
-                                  "-type": "xs:string",
-                                  "-minOccurs": "0"
-                                },
-                                {
-                                  "-name": "zones_display",
-                                  "-type": "xs:string",
-                                  "-minOccurs": "0",
-                                  "-maxOccurs": "unbounded"
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      },
-                      {
-                        "-name": "region",
-                        "xs:complexContent": {
-                          "xs:extension": {
-                            "-base": "infoMinimal",
-                            "xs:sequence": {
-                              "xs:element": [
-                                {
-                                  "-name": "chef_lieu",
-                                  "-type": "localite",
-                                  "-minOccurs": "0"
-                                },
-                                {
-                                  "-name": "departements",
-                                  "-type": "departement",
-                                  "-minOccurs": "0",
-                                  "-maxOccurs": "unbounded"
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      },
-                      {
-                        "-name": "voie",
-                        "xs:complexContent": {
-                          "xs:extension": {
-                            "-base": "infoMinimal",
-                            "xs:sequence": {
-                              "xs:element": {
-                                "-name": "codes_postaux",
-                                "-type": "xs:string",
-                                "-minOccurs": "0",
-                                "-maxOccurs": "unbounded"
-                              }
-                            }
-                          }
-                        }
-                      },
-                      {
-                        "-name": "zoneUrbaine",
-                        "xs:complexContent": {
-                          "xs:extension": {
-                            "-base": "infoMinimal",
-                            "xs:sequence": {
-                              "xs:element": {
-                                "-name": "pole",
-                                "-type": "localite",
-                                "-minOccurs": "0"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    ],
-                    "xs:simpleType": {
-                      "-name": "typeLieu",
-                      "xs:restriction": {
-                        "-base": "xs:string",
-                        "xs:enumeration": [
-                          { "-value": "REGION" },
-                          { "-value": "DEPARTEMENT" },
-                          { "-value": "LOCALITE" },
-                          { "-value": "CODE_POSTAL" },
-                          { "-value": "ARRONDISSEMENT" },
-                          { "-value": "VOIE_REPERTORIEE" },
-                          { "-value": "VOIE_NON_REPERTORIEE" },
-                          { "-value": "ADRESSE_REPERTORIEE" },
-                          { "-value": "ADRESSE_NON_REPERTORIEE" },
-                          { "-value": "POI" },
-                          { "-value": "ZONE_URBAINE" },
-                          { "-value": "TYPE_INVALIDE" }
-                        ]
-                      }
-                    }
-                  }
-                }
-                
+              schema: *Lieu_json
               example: |
                 {
                   "id": "L03523800",
@@ -464,7 +486,7 @@ traits:
                           },
                           {
                               "id": "L03505100",
-                              "libelle": "Cesson S��vign��"
+                              "libelle": "Cesson Sévigné"
                           },
                           {
                               "id": "L03505500",
@@ -480,11 +502,11 @@ traits:
                           },
                           {
                               "id": "L03520450",
-                              "libelle": "Noyal Ch��tillon sur Seiche"
+                              "libelle": "Noyal Châtillon sur Seiche"
                           },
                           {
                               "id": "L03521000",
-                              "libelle": "Pac��"
+                              "libelle": "Pacé"
                           },
                           {
                               "id": "L03524000",
@@ -492,7 +514,7 @@ traits:
                           },
                           {
                               "id": "L03527800",
-                              "libelle": "Saint Gr��goire"
+                              "libelle": "Saint Grégoire"
                           },
                           {
                               "id": "L03528100",
@@ -511,154 +533,9 @@ traits:
                 }
                 
             application/xml:
-              schema:
-                <?xml version="1.0" encoding="UTF-8"?>
-                <xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-                  <xs:element name="Lieu" type="lieu"/>
-                  <xs:complexType name="adresse">
-                    <xs:complexContent>
-                      <xs:extension base="infoMinimal">
-                        <xs:sequence>
-                          <xs:element name="numero" type="xs:string" minOccurs="0"/>
-                          <xs:element name="complement_numero" type="xs:string" minOccurs="0"/>
-                          <xs:element name="code_postal" type="xs:string" minOccurs="0"/>
-                        </xs:sequence>
-                      </xs:extension>
-                    </xs:complexContent>
-                  </xs:complexType>
-                  <xs:complexType name="arrondissement">
-                    <xs:complexContent>
-                      <xs:extension base="infoMinimal">
-                        <xs:sequence>
-                          <xs:element name="numero" type="xs:string" minOccurs="0"/>
-                          <xs:element name="codes_postaux" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                          <xs:element name="arrondissements_voisins" type="arrondissement" minOccurs="0" maxOccurs="unbounded"/>
-                          <xs:element name="localites_voisines" type="localite" minOccurs="0" maxOccurs="unbounded"/>
-                        </xs:sequence>
-                      </xs:extension>
-                    </xs:complexContent>
-                  </xs:complexType>
-                  <xs:complexType name="coordonnees">
-                    <xs:sequence>
-                      <xs:element name="type" type="xs:string" minOccurs="0"/>
-                      <xs:element name="coordinates" type="xs:double" minOccurs="1" maxOccurs="unbounded"/>
-                    </xs:sequence>
-                  </xs:complexType>
-                  <xs:complexType name="departement">
-                    <xs:complexContent>
-                      <xs:extension base="infoMinimal">
-                        <xs:sequence>
-                          <xs:element name="code_mineralogique" type="xs:string" minOccurs="0"/>
-                          <xs:element name="departements_voisins" type="departement" minOccurs="0" maxOccurs="unbounded"/>
-                          <xs:element name="prefecture" type="localite" minOccurs="0"/>
-                        </xs:sequence>
-                      </xs:extension>
-                    </xs:complexContent>
-                  </xs:complexType>
-                  <xs:complexType name="infoMinimal">
-                    <xs:sequence>
-                      <xs:element name="id" type="xs:string" minOccurs="0"/>
-                      <xs:element name="libelle" type="xs:string" minOccurs="0"/>
-                      <xs:element name="liens" minOccurs="0">
-                        <xs:complexType>
-                          <xs:sequence>
-                            <xs:element name="entry" minOccurs="0" maxOccurs="unbounded">
-                              <xs:complexType>
-                                <xs:sequence>
-                                  <xs:element name="key" minOccurs="1" type="xs:string"/>
-                                  <xs:element name="value" minOccurs="1" type="xs:string"/>
-                                </xs:sequence>
-                              </xs:complexType>
-                            </xs:element>
-                          </xs:sequence>
-                        </xs:complexType>
-                      </xs:element>
-                      <xs:element name="resource_id" type="xs:string" minOccurs="0"/>
-                    </xs:sequence>
-                  </xs:complexType>
-                  <xs:complexType name="lieu">
-                    <xs:sequence>
-                      <xs:element name="id" type="xs:string" minOccurs="1">
-                        <xs:annotation>
-                          <xs:documentation>
-                            <![CDATA[Identifiant du lieu.]]>
-                          </xs:documentation>
-                        </xs:annotation>
-                      </xs:element>
-                      <xs:element name="type" type="typeLieu" minOccurs="0"/>
-                      <xs:element name="libelle" type="xs:string" minOccurs="0"/>
-                      <xs:element name="geometrie" type="coordonnees" minOccurs="0"/>
-                      <xs:element name="region" type="region" minOccurs="0"/>
-                      <xs:element name="departement" type="departement" minOccurs="0"/>
-                      <xs:element name="zoneUrbaine" type="zoneUrbaine" minOccurs="0"/>
-                      <xs:element name="localite" type="localite" minOccurs="0"/>
-                      <xs:element name="arrondissement" type="arrondissement" minOccurs="0"/>
-                      <xs:element name="voie" type="voie" minOccurs="0"/>
-                      <xs:element name="adresse" type="adresse" minOccurs="0"/>
-                      <xs:element name="resource_id" type="xs:string" minOccurs="0"/>
-                    </xs:sequence>
-                  </xs:complexType>
-                  <xs:complexType name="localite">
-                    <xs:complexContent>
-                      <xs:extension base="infoMinimal">
-                        <xs:sequence>
-                          <xs:element name="codes_postaux" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                          <xs:element name="codes_insee" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                          <xs:element name="localite_renvoi" type="xs:boolean" minOccurs="0"/>
-                          <xs:element name="pole_zu" type="xs:boolean" minOccurs="0"/>
-                          <xs:element name="localites_voisines" type="localite" minOccurs="0" maxOccurs="unbounded"/>
-                          <xs:element name="palier_population" type="xs:string" minOccurs="0"/>
-                          <xs:element name="zones_display" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                        </xs:sequence>
-                      </xs:extension>
-                    </xs:complexContent>
-                  </xs:complexType>
-                  <xs:complexType name="region">
-                    <xs:complexContent>
-                      <xs:extension base="infoMinimal">
-                        <xs:sequence>
-                          <xs:element name="chef_lieu" type="localite" minOccurs="0"/>
-                          <xs:element name="departements" type="departement" minOccurs="0" maxOccurs="unbounded"/>
-                        </xs:sequence>
-                      </xs:extension>
-                    </xs:complexContent>
-                  </xs:complexType>
-                  <xs:complexType name="voie">
-                    <xs:complexContent>
-                      <xs:extension base="infoMinimal">
-                        <xs:sequence>
-                          <xs:element name="codes_postaux" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                        </xs:sequence>
-                      </xs:extension>
-                    </xs:complexContent>
-                  </xs:complexType>
-                  <xs:complexType name="zoneUrbaine">
-                    <xs:complexContent>
-                      <xs:extension base="infoMinimal">
-                        <xs:sequence>
-                          <xs:element name="pole" type="localite" minOccurs="0"/>
-                        </xs:sequence>
-                      </xs:extension>
-                    </xs:complexContent>
-                  </xs:complexType>
-                  <xs:simpleType name="typeLieu">
-                    <xs:restriction base="xs:string">
-                      <xs:enumeration value="REGION"/>
-                      <xs:enumeration value="DEPARTEMENT"/>
-                      <xs:enumeration value="LOCALITE"/>
-                      <xs:enumeration value="CODE_POSTAL"/>
-                      <xs:enumeration value="ARRONDISSEMENT"/>
-                      <xs:enumeration value="VOIE_REPERTORIEE"/>
-                      <xs:enumeration value="VOIE_NON_REPERTORIEE"/>
-                      <xs:enumeration value="ADRESSE_REPERTORIEE"/>
-                      <xs:enumeration value="ADRESSE_NON_REPERTORIEE"/>
-                      <xs:enumeration value="POI"/>
-                      <xs:enumeration value="ZONE_URBAINE"/>
-                      <xs:enumeration value="TYPE_INVALIDE"/>
-                    </xs:restriction>
-                  </xs:simpleType>
-                </xs:schema>
-              #example:
+              schema: Lieu_xml
+              example: |
+                <xml></xml>
         
         400:
           body:  
@@ -680,10 +557,10 @@ traits:
                 {
                   "status": {
                     code: "404 - Not Found"
-                    message: "B001 - BUSINESS_ERROR : Aucun lieu n'a ��t�� trouv�� pour l'identifiant : L03523801"
+                    message: "B001 - BUSINESS_ERROR : Aucun lieu n'a été trouvé pour l'identifiant : L03523801"
                   },
                   "class": "class fr.pagesjaunes.commun.rest.exception.NotFoundException",
-                  "stack": "fr.pagesjaunes.commun.rest.exception.NotFoundException: Aucun lieu n'a ��t�� trouv�� pour l'identifiant : L03523801 at fr.pagesjaunes.geo.ws.rest.su.impl.SULieuxImpl.recupererLieu(SULieuxImpl.java:137) \n"
+                  "stack": "fr.pagesjaunes.commun.rest.exception.NotFoundException: Aucun lieu n'a été trouvé pour l'identifiant : L03523801 at fr.pagesjaunes.geo.ws.rest.su.impl.SULieuxImpl.recupererLieu(SULieuxImpl.java:137) \n"
                 }
         
         500:
@@ -701,32 +578,1643 @@ traits:
     /departements{mediaTypeExtension}:
       type: base
       get:
-        description: R��cuperer les d��partements d'une r��gion
+        description: Récuperer les départements d'une région
         responses:
+          200:
+            body:
+              application/json:
+                schema: *Lieu_json
+                example: |
+                  [
+                    {
+                      "id": "D022",
+                      "type": "DEPARTEMENT",
+                      "libelle": "COTES D ARMOR",
+                      "geometrie": {
+                        "type": "Point",
+                        "coordinates": [
+                            48.5108101,
+                            -3.3263676
+                        ]
+                      },
+                      "region": {
+                        "id": "R53",
+                        "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                        "code_mineralogique": "22",
+                        "departements_voisins": [
+                            {
+                                "id": "D029",
+                                "libelle": "FINISTERE",
+                                "code_mineralogique": "29"
+                            },
+                            {
+                                "id": "D035",
+                                "libelle": "ILLE ET VILAINE",
+                                "code_mineralogique": "35"
+                            },
+                            {
+                                "id": "D056",
+                                "libelle": "MORBIHAN",
+                                "code_mineralogique": "56"
+                            }
+                        ],
+                        "prefecture": {
+                            "id": "L02227800",
+                            "libelle": "Saint Brieuc"
+                        }
+                      }
+                    },
+                    {
+                      "id": "D029",
+                      "type": "DEPARTEMENT",
+                      "libelle": "FINISTERE",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.2520249,
+                              -3.9300525
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "code_mineralogique": "29",
+                          "departements_voisins": [
+                              {
+                                  "id": "D022",
+                                  "libelle": "COTES D ARMOR",
+                                  "code_mineralogique": "22"
+                              },
+                              {
+                                  "id": "D056",
+                                  "libelle": "MORBIHAN",
+                                  "code_mineralogique": "56"
+                              }
+                          ],
+                          "prefecture": {
+                              "id": "L02923200",
+                              "libelle": "Quimper"
+                          }
+                      }
+                    },
+                    {
+                      "id": "D035",
+                      "type": "DEPARTEMENT",
+                      "libelle": "ILLE ET VILAINE",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.2292016,
+                              -1.5300695
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "code_mineralogique": "35",
+                          "departements_voisins": [
+                              {
+                                  "id": "D022",
+                                  "libelle": "COTES D ARMOR",
+                                  "code_mineralogique": "22"
+                              },
+                              {
+                                  "id": "D044",
+                                  "libelle": "LOIRE ATLANTIQUE",
+                                  "code_mineralogique": "44"
+                              },
+                              {
+                                  "id": "D049",
+                                  "libelle": "MAINE ET LOIRE",
+                                  "code_mineralogique": "49"
+                              },
+                              {
+                                  "id": "D050",
+                                  "libelle": "MANCHE",
+                                  "code_mineralogique": "50"
+                              },
+                              {
+                                  "id": "D053",
+                                  "libelle": "MAYENNE",
+                                  "code_mineralogique": "53"
+                              },
+                              {
+                                  "id": "D056",
+                                  "libelle": "MORBIHAN",
+                                  "code_mineralogique": "56"
+                              }
+                          ],
+                          "prefecture": {
+                              "id": "L03523800",
+                              "libelle": "Rennes"
+                          }
+                      }
+                    },
+                    {
+                      "id": "D056",
+                      "type": "DEPARTEMENT",
+                      "libelle": "MORBIHAN",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              47.8852929,
+                              -2.9001865
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "code_mineralogique": "56",
+                          "departements_voisins": [
+                              {
+                                  "id": "D022",
+                                  "libelle": "COTES D ARMOR",
+                                  "code_mineralogique": "22"
+                              },
+                              {
+                                  "id": "D029",
+                                  "libelle": "FINISTERE",
+                                  "code_mineralogique": "29"
+                              },
+                              {
+                                  "id": "D035",
+                                  "libelle": "ILLE ET VILAINE",
+                                  "code_mineralogique": "35"
+                              },
+                              {
+                                  "id": "D044",
+                                  "libelle": "LOIRE ATLANTIQUE",
+                                  "code_mineralogique": "44"
+                              }
+                          ],
+                          "prefecture": {
+                              "id": "L05626000",
+                              "libelle": "Vannes"
+                          }
+                      }
+                    }
+                  ]
+          400:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      "code": "400 - Bad Request",
+                      "message": "C003 - PARAMETER_ERROR : L'identifiant de région n'est pas correct"
+                    }
+                  }
+                  
+          404:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "404 - Not Found"
+                      message: "Resource not found"
+                    }
+                  }
+          500:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "500 - Internal Server Error"
+                    }
+                  }
         
     /departements_voisins{mediaTypeExtension}:
       type: base
       get:
-        description: R��cuperer les d��partements voisins d'un autre d��partement
+        description: Récuperer les départements voisins d'un autre département
         responses:
+          200:
+            body:
+              application/json:
+                schema: *Lieu_json
+                example: |
+                  [
+                    {
+                      "id": "D022",
+                      "type": "DEPARTEMENT",
+                      "libelle": "COTES D ARMOR",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.5108101,
+                              -3.3263676
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "code_mineralogique": "22",
+                          "departements_voisins": [
+                              {
+                                  "id": "D029",
+                                  "libelle": "FINISTERE",
+                                  "code_mineralogique": "29"
+                              },
+                              {
+                                  "id": "D035",
+                                  "libelle": "ILLE ET VILAINE",
+                                  "code_mineralogique": "35"
+                              },
+                              {
+                                  "id": "D056",
+                                  "libelle": "MORBIHAN",
+                                  "code_mineralogique": "56"
+                              }
+                          ],
+                          "prefecture": {
+                              "id": "L02227800",
+                              "libelle": "Saint Brieuc"
+                          }
+                      }
+                    },
+                    {
+                      "id": "D044",
+                      "type": "DEPARTEMENT",
+                      "libelle": "LOIRE ATLANTIQUE",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              47.2780468,
+                              -1.8157647
+                          ]
+                      },
+                      "region": {
+                          "id": "R52",
+                          "libelle": "PAYS-DE-LA-LOIRE"
+                      },
+                      "departement": {
+                          "code_mineralogique": "44",
+                          "departements_voisins": [
+                              {
+                                  "id": "D035",
+                                  "libelle": "ILLE ET VILAINE",
+                                  "code_mineralogique": "35"
+                              },
+                              {
+                                  "id": "D049",
+                                  "libelle": "MAINE ET LOIRE",
+                                  "code_mineralogique": "49"
+                              },
+                              {
+                                  "id": "D053",
+                                  "libelle": "MAYENNE",
+                                  "code_mineralogique": "53"
+                              },
+                              {
+                                  "id": "D056",
+                                  "libelle": "MORBIHAN",
+                                  "code_mineralogique": "56"
+                              },
+                              {
+                                  "id": "D085",
+                                  "libelle": "VENDEE",
+                                  "code_mineralogique": "85"
+                              }
+                          ],
+                          "prefecture": {
+                              "id": "L04410900",
+                              "libelle": "Nantes"
+                          }
+                      }
+                    },
+                    {
+                      "id": "D049",
+                      "type": "DEPARTEMENT",
+                      "libelle": "MAINE ET LOIRE",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              47.2913545,
+                              -0.4877852
+                          ]
+                      },
+                      "region": {
+                          "id": "R52",
+                          "libelle": "PAYS-DE-LA-LOIRE"
+                      },
+                      "departement": {
+                          "code_mineralogique": "49",
+                          "departements_voisins": [
+                              {
+                                  "id": "D037",
+                                  "libelle": "INDRE ET LOIRE",
+                                  "code_mineralogique": "37"
+                              },
+                              {
+                                  "id": "D044",
+                                  "libelle": "LOIRE ATLANTIQUE",
+                                  "code_mineralogique": "44"
+                              },
+                              {
+                                  "id": "D053",
+                                  "libelle": "MAYENNE",
+                                  "code_mineralogique": "53"
+                              },
+                              {
+                                  "id": "D072",
+                                  "libelle": "SARTHE",
+                                  "code_mineralogique": "72"
+                              },
+                              {
+                                  "id": "D079",
+                                  "libelle": "DEUX SEVRES",
+                                  "code_mineralogique": "79"
+                              },
+                              {
+                                  "id": "D085",
+                                  "libelle": "VENDEE",
+                                  "code_mineralogique": "85"
+                              },
+                              {
+                                  "id": "D086",
+                                  "libelle": "VIENNE",
+                                  "code_mineralogique": "86"
+                              }
+                          ],
+                          "prefecture": {
+                              "id": "L04900700",
+                              "libelle": "Angers"
+                          }
+                      }
+                    },
+                    {
+                      "id": "D050",
+                      "type": "DEPARTEMENT",
+                      "libelle": "MANCHE",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              49.114712,
+                              -1.3115949
+                          ]
+                      },
+                      "region": {
+                          "id": "R25",
+                          "libelle": "BASSE NORMANDIE"
+                      },
+                      "departement": {
+                          "code_mineralogique": "50",
+                          "departements_voisins": [
+                              {
+                                  "id": "D014",
+                                  "libelle": "CALVADOS",
+                                  "code_mineralogique": "14"
+                              },
+                              {
+                                  "id": "D035",
+                                  "libelle": "ILLE ET VILAINE",
+                                  "code_mineralogique": "35"
+                              },
+                              {
+                                  "id": "D053",
+                                  "libelle": "MAYENNE",
+                                  "code_mineralogique": "53"
+                              },
+                              {
+                                  "id": "D061",
+                                  "libelle": "ORNE",
+                                  "code_mineralogique": "61"
+                              }
+                          ],
+                          "prefecture": {
+                              "id": "L05050200",
+                              "libelle": "Saint Lô"
+                          }
+                      }
+                    },
+                    {
+                      "id": "D053",
+                      "type": "DEPARTEMENT",
+                      "libelle": "MAYENNE",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.304055,
+                              -0.6182876
+                          ]
+                      },
+                      "region": {
+                          "id": "R52",
+                          "libelle": "PAYS-DE-LA-LOIRE"
+                      },
+                      "departement": {
+                          "code_mineralogique": "53",
+                          "departements_voisins": [
+                              {
+                                  "id": "D035",
+                                  "libelle": "ILLE ET VILAINE",
+                                  "code_mineralogique": "35"
+                              },
+                              {
+                                  "id": "D049",
+                                  "libelle": "MAINE ET LOIRE",
+                                  "code_mineralogique": "49"
+                              },
+                              {
+                                  "id": "D050",
+                                  "libelle": "MANCHE",
+                                  "code_mineralogique": "50"
+                              },
+                              {
+                                  "id": "D061",
+                                  "libelle": "ORNE",
+                                  "code_mineralogique": "61"
+                              },
+                              {
+                                  "id": "D072",
+                                  "libelle": "SARTHE",
+                                  "code_mineralogique": "72"
+                              }
+                          ],
+                          "prefecture": {
+                              "id": "L05313000",
+                              "libelle": "Laval"
+                          }
+                      }
+                    },
+                    {
+                      "id": "D056",
+                      "type": "DEPARTEMENT",
+                      "libelle": "MORBIHAN",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              47.8852929,
+                              -2.9001865
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "code_mineralogique": "56",
+                          "departements_voisins": [
+                              {
+                                  "id": "D022",
+                                  "libelle": "COTES D ARMOR",
+                                  "code_mineralogique": "22"
+                              },
+                              {
+                                  "id": "D029",
+                                  "libelle": "FINISTERE",
+                                  "code_mineralogique": "29"
+                              },
+                              {
+                                  "id": "D035",
+                                  "libelle": "ILLE ET VILAINE",
+                                  "code_mineralogique": "35"
+                              },
+                              {
+                                  "id": "D044",
+                                  "libelle": "LOIRE ATLANTIQUE",
+                                  "code_mineralogique": "44"
+                              }
+                          ],
+                          "prefecture": {
+                              "id": "L05626000",
+                              "libelle": "Vannes"
+                          }
+                      }
+                    }
+                  ]
+                  
+          400:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      "code": "400 - Bad Request",
+                      "message": "C003 - PARAMETER_ERROR : L'identifiant de département n'est pas correct"
+                    }
+                  }
+                  
+          404:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "404 - Not Found"
+                      message: "Resource not found"
+                    }
+                  }
+          500:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "500 - Internal Server Error"
+                    }
+                  }
           
     /chef_lieu{mediaTypeExtension}:
       type: base
       get:
-        description: R��cuperer le chef lieu d'une r��gion
+        description: Récuperer le chef lieu d'une région
         responses:
+          200:
+            body:
+              application/json:
+                schema: *Lieu_json
+                example: |
+                  {
+                    "id": "L03523800",
+                    "type": "LOCALITE",
+                    "libelle": "Rennes",
+                    "geometrie": {
+                        "type": "Point",
+                        "coordinates": [
+                            48.107296,
+                            -1.682348
+                        ]
+                    },
+                    "region": {
+                        "id": "R53",
+                        "libelle": "BRETAGNE"
+                    },
+                    "departement": {
+                        "id": "D035",
+                        "libelle": "ILLE ET VILAINE",
+                        "code_mineralogique": "35"
+                    },
+                    "localite": {
+                        "codes_postaux": [
+                            "35000",
+                            "35200",
+                            "35700"
+                        ],
+                        "codes_insee": [
+                            "35238"
+                        ],
+                        "localite_renvoi": false,
+                        "pole_zu": true,
+                        "localites_voisines": [
+                            {
+                                "id": "L03502400",
+                                "libelle": "Betton"
+                            },
+                            {
+                                "id": "L03505100",
+                                "libelle": "Cesson Sévigné"
+                            },
+                            {
+                                "id": "L03505500",
+                                "libelle": "Chantepie"
+                            },
+                            {
+                                "id": "L03518900",
+                                "libelle": "Montgermont"
+                            },
+                            {
+                                "id": "L03519600",
+                                "libelle": "Mordelles"
+                            },
+                            {
+                                "id": "L03520450",
+                                "libelle": "Noyal Châtillon sur Seiche"
+                            },
+                            {
+                                "id": "L03521000",
+                                "libelle": "Pacé"
+                            },
+                            {
+                                "id": "L03524000",
+                                "libelle": "Le Rheu"
+                            },
+                            {
+                                "id": "L03527800",
+                                "libelle": "Saint Grégoire"
+                            },
+                            {
+                                "id": "L03528100",
+                                "libelle": "Saint Jacques de la Lande"
+                            },
+                            {
+                                "id": "L03535300",
+                                "libelle": "Vezin le Coquet"
+                            }
+                        ],
+                        "palier_population": "62",
+                        "zones_display": [
+                            "002760"
+                        ]
+                    }
+                  }
+                
+          400:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      "code": "400 - Bad Request",
+                      "message": "C003 - PARAMETER_ERROR : L'identifiant de région n'est pas correct"
+                    }
+                  }
+                  
+          404:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "404 - Not Found"
+                      message: "Resource not found"
+                    }
+                  }
+          500:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "500 - Internal Server Error"
+                    }
+                  }
           
     /prefecture{mediaTypeExtension}:
       type: base
       get:
-        description: R��cuperer la pr��fecture d'un d��partement
+        description: Récuperer la préfecture d'un département
         responses:
+          200:
+            body:
+              application/json:
+                schema: *Lieu_json
+                example: |
+                  {
+                    "id": "L03523800",
+                    "type": "LOCALITE",
+                    "libelle": "Rennes",
+                    "geometrie": {
+                        "type": "Point",
+                        "coordinates": [
+                            48.107296,
+                            -1.682348
+                        ]
+                    },
+                    "region": {
+                        "id": "R53",
+                        "libelle": "BRETAGNE"
+                    },
+                    "departement": {
+                        "id": "D035",
+                        "libelle": "ILLE ET VILAINE",
+                        "code_mineralogique": "35"
+                    },
+                    "localite": {
+                        "codes_postaux": [
+                            "35000",
+                            "35200",
+                            "35700"
+                        ],
+                        "codes_insee": [
+                            "35238"
+                        ],
+                        "localite_renvoi": false,
+                        "pole_zu": true,
+                        "localites_voisines": [
+                            {
+                                "id": "L03502400",
+                                "libelle": "Betton"
+                            },
+                            {
+                                "id": "L03505100",
+                                "libelle": "Cesson Sévigné"
+                            },
+                            {
+                                "id": "L03505500",
+                                "libelle": "Chantepie"
+                            },
+                            {
+                                "id": "L03518900",
+                                "libelle": "Montgermont"
+                            },
+                            {
+                                "id": "L03519600",
+                                "libelle": "Mordelles"
+                            },
+                            {
+                                "id": "L03520450",
+                                "libelle": "Noyal Châtillon sur Seiche"
+                            },
+                            {
+                                "id": "L03521000",
+                                "libelle": "Pacé"
+                            },
+                            {
+                                "id": "L03524000",
+                                "libelle": "Le Rheu"
+                            },
+                            {
+                                "id": "L03527800",
+                                "libelle": "Saint Grégoire"
+                            },
+                            {
+                                "id": "L03528100",
+                                "libelle": "Saint Jacques de la Lande"
+                            },
+                            {
+                                "id": "L03535300",
+                                "libelle": "Vezin le Coquet"
+                            }
+                        ],
+                        "palier_population": "62",
+                        "zones_display": [
+                            "002760"
+                        ]
+                    }
+                  }
+                  
+          400:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      "code": "400 - Bad Request",
+                      "message": "C003 - PARAMETER_ERROR : L'identifiant de département n'est pas correct"
+                    }
+                  }
+                  
+          404:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "404 - Not Found"
+                      message: "Resource not found"
+                    }
+                  }
+          500:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "500 - Internal Server Error"
+                    }
+                  }
           
     /localites_voisines{mediaTypeExtension}:
       type: base
       get:
-        description: R��cuperer les localit��s voisines d'une autre localit��
+        description: Récuperer les localités voisines d'une autre localité
         responses:
+          200:
+            body:
+              application/json:
+                schema: *Lieu_json
+                example: |
+                  [
+                    {
+                      "id": "L03502400",
+                      "type": "LOCALITE",
+                      "libelle": "Betton",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.181455,
+                              -1.64629
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35830"
+                          ],
+                          "codes_insee": [
+                              "35024"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03505100",
+                                  "libelle": "Cesson Sévigné"
+                              },
+                              {
+                                  "id": "L03505900",
+                                  "libelle": "La Chapelle des Fougeretz"
+                              },
+                              {
+                                  "id": "L03506700",
+                                  "libelle": "Chasné sur Illet"
+                              },
+                              {
+                                  "id": "L03507900",
+                                  "libelle": "Chevaigné"
+                              },
+                              {
+                                  "id": "L03510700",
+                                  "libelle": "Ercé près Liffré"
+                              },
+                              {
+                                  "id": "L03515200",
+                                  "libelle": "Liffré"
+                              },
+                              {
+                                  "id": "L03517300",
+                                  "libelle": "Melesse"
+                              },
+                              {
+                                  "id": "L03518900",
+                                  "libelle": "Montgermont"
+                              },
+                              {
+                                  "id": "L03519700",
+                                  "libelle": "Mouazé"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03525100",
+                                  "libelle": "Saint Aubin d'Aubigné"
+                              },
+                              {
+                                  "id": "L03527800",
+                                  "libelle": "Saint Grégoire"
+                              },
+                              {
+                                  "id": "L03531650",
+                                  "libelle": "Saint Sulpice la Forêt"
+                              },
+                              {
+                                  "id": "L03533400",
+                                  "libelle": "Thorigné Fouillard"
+                              }
+                          ],
+                          "palier_population": "22",
+                          "zones_display": [
+                              "000434"
+                          ]
+                      }
+                    },
+                    {
+                      "id": "L03505100",
+                      "type": "LOCALITE",
+                      "libelle": "Cesson Sévigné",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.117076,
+                              -1.606454
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35510"
+                          ],
+                          "codes_insee": [
+                              "35051"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03500100",
+                                  "libelle": "Acigné"
+                              },
+                              {
+                                  "id": "L03502400",
+                                  "libelle": "Betton"
+                              },
+                              {
+                                  "id": "L03505500",
+                                  "libelle": "Chantepie"
+                              },
+                              {
+                                  "id": "L03506900",
+                                  "libelle": "Châteaugiron"
+                              },
+                              {
+                                  "id": "L03509900",
+                                  "libelle": "Domloup"
+                              },
+                              {
+                                  "id": "L03515200",
+                                  "libelle": "Liffré"
+                              },
+                              {
+                                  "id": "L03520700",
+                                  "libelle": "Noyal sur Vilaine"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03533400",
+                                  "libelle": "Thorigné Fouillard"
+                              }
+                          ],
+                          "palier_population": "31",
+                          "zones_display": [
+                              "000758"
+                          ]
+                      }
+                    },
+                    {
+                      "id": "L03505500",
+                      "type": "LOCALITE",
+                      "libelle": "Chantepie",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.086089,
+                              -1.617569
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35135"
+                          ],
+                          "codes_insee": [
+                              "35055"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03505100",
+                                  "libelle": "Cesson Sévigné"
+                              },
+                              {
+                                  "id": "L03506900",
+                                  "libelle": "Châteaugiron"
+                              },
+                              {
+                                  "id": "L03509900",
+                                  "libelle": "Domloup"
+                              },
+                              {
+                                  "id": "L03520400",
+                                  "libelle": "Nouvoitou"
+                              },
+                              {
+                                  "id": "L03520700",
+                                  "libelle": "Noyal sur Vilaine"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03535200",
+                                  "libelle": "Vern sur Seiche"
+                              }
+                          ],
+                          "palier_population": "21",
+                          "zones_display": [
+                              "002762"
+                          ]
+                      }
+                    },
+                    {
+                      "id": "L03518900",
+                      "type": "LOCALITE",
+                      "libelle": "Montgermont",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.154727,
+                              -1.716925
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35760"
+                          ],
+                          "codes_insee": [
+                              "35189"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03505900",
+                                  "libelle": "La Chapelle des Fougeretz"
+                              },
+                              {
+                                  "id": "L03521000",
+                                  "libelle": "Pacé"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03525100",
+                                  "libelle": "Saint Aubin d'Aubigné"
+                              },
+                              {
+                                  "id": "L03527800",
+                                  "libelle": "Saint Grégoire"
+                              }
+                          ],
+                          "palier_population": "15",
+                          "zones_display": [
+                              "000434"
+                          ]
+                      }
+                    },
+                    {
+                      "id": "L03519600",
+                      "type": "LOCALITE",
+                      "libelle": "Mordelles",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.071702,
+                              -1.850259
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35310"
+                          ],
+                          "codes_insee": [
+                              "35196"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03503700",
+                                  "libelle": "Bréal sous Montfort"
+                              },
+                              {
+                                  "id": "L03506500",
+                                  "libelle": "La Chapelle Thouarault"
+                              },
+                              {
+                                  "id": "L03507600",
+                                  "libelle": "Chavagne"
+                              },
+                              {
+                                  "id": "L03508000",
+                                  "libelle": "Cintré"
+                              },
+                              {
+                                  "id": "L03512300",
+                                  "libelle": "Goven"
+                              },
+                              {
+                                  "id": "L03512700",
+                                  "libelle": "Guignen"
+                              },
+                              {
+                                  "id": "L03513100",
+                                  "libelle": "L'Hermitage"
+                              },
+                              {
+                                  "id": "L03518800",
+                                  "libelle": "Montfort sur Meu"
+                              },
+                              {
+                                  "id": "L03522300",
+                                  "libelle": "Plélan le Grand"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03524000",
+                                  "libelle": "Le Rheu"
+                              },
+                              {
+                                  "id": "L03533100",
+                                  "libelle": "Talensac"
+                              },
+                              {
+                                  "id": "L03535100",
+                                  "libelle": "Le Verger"
+                              }
+                          ],
+                          "palier_population": "21",
+                          "zones_display": [
+                              "002266"
+                          ]
+                      }
+                    },
+                    {
+                      "id": "L03520450",
+                      "type": "LOCALITE",
+                      "libelle": "Noyal Châtillon sur Seiche",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.042196,
+                              -1.663952
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35230"
+                          ],
+                          "codes_insee": [
+                              "35206"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03504700",
+                                  "libelle": "Bruz"
+                              },
+                              {
+                                  "id": "L03505500",
+                                  "libelle": "Chantepie"
+                              },
+                              {
+                                  "id": "L03506600",
+                                  "libelle": "Chartres de Bretagne"
+                              },
+                              {
+                                  "id": "L03506900",
+                                  "libelle": "Châteaugiron"
+                              },
+                              {
+                                  "id": "L03512600",
+                                  "libelle": "Guichen"
+                              },
+                              {
+                                  "id": "L03513600",
+                                  "libelle": "Janzé"
+                              },
+                              {
+                                  "id": "L03523100",
+                                  "libelle": "Pont Pean"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03526600",
+                                  "libelle": "Saint Erblon"
+                              },
+                              {
+                                  "id": "L03528100",
+                                  "libelle": "Saint Jacques de la Lande"
+                              },
+                              {
+                                  "id": "L03535200",
+                                  "libelle": "Vern sur Seiche"
+                              }
+                          ],
+                          "palier_population": "14",
+                          "zones_display": [
+                              "000607"
+                          ]
+                      }
+                    },
+                    {
+                      "id": "L03521000",
+                      "type": "LOCALITE",
+                      "libelle": "Pacé",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.147378,
+                              -1.772867
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35740"
+                          ],
+                          "codes_insee": [
+                              "35210"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03505900",
+                                  "libelle": "La Chapelle des Fougeretz"
+                              },
+                              {
+                                  "id": "L03512000",
+                                  "libelle": "Gévezé"
+                              },
+                              {
+                                  "id": "L03513000",
+                                  "libelle": "Hédé Bazouges"
+                              },
+                              {
+                                  "id": "L03513100",
+                                  "libelle": "L'Hermitage"
+                              },
+                              {
+                                  "id": "L03517700",
+                                  "libelle": "La Mézière"
+                              },
+                              {
+                                  "id": "L03518900",
+                                  "libelle": "Montgermont"
+                              },
+                              {
+                                  "id": "L03519600",
+                                  "libelle": "Mordelles"
+                              },
+                              {
+                                  "id": "L03521521",
+                                  "libelle": "Parthenay de Bretagne"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03524000",
+                                  "libelle": "Le Rheu"
+                              },
+                              {
+                                  "id": "L03525100",
+                                  "libelle": "Saint Aubin d'Aubigné"
+                              },
+                              {
+                                  "id": "L03527500",
+                                  "libelle": "Saint Gilles"
+                              },
+                              {
+                                  "id": "L03535300",
+                                  "libelle": "Vezin le Coquet"
+                              }
+                          ],
+                          "palier_population": "21",
+                          "zones_display": [
+                              "002761"
+                          ]
+                      }
+                    },
+                    {
+                      "id": "L03524000",
+                      "type": "LOCALITE",
+                      "libelle": "Le Rheu",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.079795,
+                              -1.774307
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35650"
+                          ],
+                          "codes_insee": [
+                              "35240"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03507600",
+                                  "libelle": "Chavagne"
+                              },
+                              {
+                                  "id": "L03513100",
+                                  "libelle": "L'Hermitage"
+                              },
+                              {
+                                  "id": "L03518800",
+                                  "libelle": "Montfort sur Meu"
+                              },
+                              {
+                                  "id": "L03519600",
+                                  "libelle": "Mordelles"
+                              },
+                              {
+                                  "id": "L03522300",
+                                  "libelle": "Plélan le Grand"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03528100",
+                                  "libelle": "Saint Jacques de la Lande"
+                              },
+                              {
+                                  "id": "L03535300",
+                                  "libelle": "Vezin le Coquet"
+                              }
+                          ],
+                          "palier_population": "21",
+                          "zones_display": [
+                              "002266"
+                          ]
+                      }
+                    },
+                    {
+                      "id": "L03527800",
+                      "type": "LOCALITE",
+                      "libelle": "Saint Grégoire",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.152335,
+                              -1.681757
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35760"
+                          ],
+                          "codes_insee": [
+                              "35278"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03502400",
+                                  "libelle": "Betton"
+                              },
+                              {
+                                  "id": "L03505900",
+                                  "libelle": "La Chapelle des Fougeretz"
+                              },
+                              {
+                                  "id": "L03517300",
+                                  "libelle": "Melesse"
+                              },
+                              {
+                                  "id": "L03518900",
+                                  "libelle": "Montgermont"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03525100",
+                                  "libelle": "Saint Aubin d'Aubigné"
+                              }
+                          ],
+                          "palier_population": "21",
+                          "zones_display": [
+                              "000434"
+                          ]
+                      }
+                    },
+                    {
+                      "id": "L03528100",
+                      "type": "LOCALITE",
+                      "libelle": "Saint Jacques de la Lande",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.0681,
+                              -1.722343
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35136"
+                          ],
+                          "codes_insee": [
+                              "35281"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03504700",
+                                  "libelle": "Bruz"
+                              },
+                              {
+                                  "id": "L03506600",
+                                  "libelle": "Chartres de Bretagne"
+                              },
+                              {
+                                  "id": "L03507600",
+                                  "libelle": "Chavagne"
+                              },
+                              {
+                                  "id": "L03512600",
+                                  "libelle": "Guichen"
+                              },
+                              {
+                                  "id": "L03519600",
+                                  "libelle": "Mordelles"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03524000",
+                                  "libelle": "Le Rheu"
+                              }
+                          ],
+                          "palier_population": "21",
+                          "zones_display": [
+                              "002763"
+                          ]
+                      }
+                    },
+                    {
+                      "id": "L03535300",
+                      "type": "LOCALITE",
+                      "libelle": "Vezin le Coquet",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.118214,
+                              -1.757141
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35132"
+                          ],
+                          "codes_insee": [
+                              "35353"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": false,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03519600",
+                                  "libelle": "Mordelles"
+                              },
+                              {
+                                  "id": "L03521000",
+                                  "libelle": "Pacé"
+                              },
+                              {
+                                  "id": "L03523800",
+                                  "libelle": "Rennes"
+                              },
+                              {
+                                  "id": "L03524000",
+                                  "libelle": "Le Rheu"
+                              }
+                          ],
+                          "palier_population": "17",
+                          "zones_display": [
+                              "002763"
+                          ]
+                      }
+                    }
+                  ]
+                  
+          400:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      "code": "400 - Bad Request",
+                      "message": "C003 - PARAMETER_ERROR : L'identifiant localité n'est pas correct"
+                    }
+                  }
+                  
+          404:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "404 - Not Found"
+                      message: "Resource not found"
+                    }
+                  }
+          500:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "500 - Internal Server Error"
+                    }
+                  }
         
   /by_code_postal-{cp}:
     type: base
@@ -734,9 +2222,131 @@ traits:
       cp:
           description: Code postal
           required: true
+          example: 56650
     get:
-      description: R��cuperer une/des localit��(s) par son/leur code postal
+      description: Récuperer une/des localité(s) par son/leur code postal
       responses:
+          200:
+            body:
+              application/json:
+                schema: *Lieu_json
+                example: |
+                  [
+                    {
+                      "id": "L03523800",
+                      "type": "LOCALITE",
+                      "libelle": "Rennes",
+                      "geometrie": {
+                          "type": "Point",
+                          "coordinates": [
+                              48.107296,
+                              -1.682348
+                          ]
+                      },
+                      "region": {
+                          "id": "R53",
+                          "libelle": "BRETAGNE"
+                      },
+                      "departement": {
+                          "id": "D035",
+                          "libelle": "ILLE ET VILAINE",
+                          "code_mineralogique": "35"
+                      },
+                      "localite": {
+                          "codes_postaux": [
+                              "35000",
+                              "35200",
+                              "35700"
+                          ],
+                          "codes_insee": [
+                              "35238"
+                          ],
+                          "localite_renvoi": false,
+                          "pole_zu": true,
+                          "localites_voisines": [
+                              {
+                                  "id": "L03502400",
+                                  "libelle": "Betton"
+                              },
+                              {
+                                  "id": "L03505100",
+                                  "libelle": "Cesson Sévigné"
+                              },
+                              {
+                                  "id": "L03505500",
+                                  "libelle": "Chantepie"
+                              },
+                              {
+                                  "id": "L03518900",
+                                  "libelle": "Montgermont"
+                              },
+                              {
+                                  "id": "L03519600",
+                                  "libelle": "Mordelles"
+                              },
+                              {
+                                  "id": "L03520450",
+                                  "libelle": "Noyal Châtillon sur Seiche"
+                              },
+                              {
+                                  "id": "L03521000",
+                                  "libelle": "Pacé"
+                              },
+                              {
+                                  "id": "L03524000",
+                                  "libelle": "Le Rheu"
+                              },
+                              {
+                                  "id": "L03527800",
+                                  "libelle": "Saint Grégoire"
+                              },
+                              {
+                                  "id": "L03528100",
+                                  "libelle": "Saint Jacques de la Lande"
+                              },
+                              {
+                                  "id": "L03535300",
+                                  "libelle": "Vezin le Coquet"
+                              }
+                          ],
+                          "palier_population": "62",
+                          "zones_display": [
+                              "002760"
+                          ]
+                      }
+                    }
+                  ]
+
+          400:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      "code": "400 - Bad Request",
+                      "message": "A001 - GENERAL_ERROR : Le code postal n'est pas correct"
+                    }
+                  }
+                  
+          404:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "404 - Not Found"
+                      message: "Resource not found"
+                    }
+                  }
+          500:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "500 - Internal Server Error"
+                    }
+                  }
       
 /analyse:
   type: base
@@ -744,16 +2354,137 @@ traits:
     description: Analyse d'un OU
     queryParameters:
       ou:
-        description: Chaine de caract��res �� analyser
+        description: Chaine de caractères à analyser
         required: true
         type: string
       types:
-        description: Filtre sur le type de lieu �� analyser
+        description: Filtre sur le type de lieu à analyser
         required: false
         type: string
         enum:
           - LOCALITE
           - REGION
           - DEPARTEMENT
+          - CODE_POSTAL
+          - ARRONDISSEMENT
+          - VOIE_REPERTORIEE
+          - VOIE_NON_REPERTORIEE
+          - ADRESSE_REPERTORIEE
+          - ADRESSE_NON_REPERTORIEE
+          - POI
+          - ZONE_URBAINE
+          - TYPE_INVALIDE
+            
     responses:
-    
+          200:
+            body:
+              application/json:
+                schema: *Lieu_json
+                example: |
+                  [
+                    {
+                        "id": "L03523800",
+                        "type": "LOCALITE",
+                        "libelle": "Rennes",
+                        "geometrie": {
+                            "type": "Point",
+                            "coordinates": [
+                                48.107296,
+                                -1.682348
+                            ]
+                        },
+                        "region": {
+                            "id": "R53",
+                            "libelle": "BRETAGNE"
+                        },
+                        "departement": {
+                            "id": "D035",
+                            "libelle": "ILLE ET VILAINE",
+                            "code_mineralogique": "35"
+                        },
+                        "localite": {
+                            "codes_postaux": [
+                                "35000",
+                                "35200",
+                                "35700"
+                            ],
+                            "codes_insee": [
+                                "35238"
+                            ],
+                            "localite_renvoi": false,
+                            "pole_zu": true,
+                            "localites_voisines": [
+                                {
+                                    "id": "L03502400",
+                                    "libelle": "Betton"
+                                },
+                                {
+                                    "id": "L03505100",
+                                    "libelle": "Cesson Sévigné"
+                                },
+                                {
+                                    "id": "L03505500",
+                                    "libelle": "Chantepie"
+                                },
+                                {
+                                    "id": "L03518900",
+                                    "libelle": "Montgermont"
+                                },
+                                {
+                                    "id": "L03519600",
+                                    "libelle": "Mordelles"
+                                },
+                                {
+                                    "id": "L03520450",
+                                    "libelle": "Noyal Châtillon sur Seiche"
+                                },
+                                {
+                                    "id": "L03521000",
+                                    "libelle": "Pacé"
+                                },
+                                {
+                                    "id": "L03524000",
+                                    "libelle": "Le Rheu"
+                                },
+                                {
+                                    "id": "L03527800",
+                                    "libelle": "Saint Grégoire"
+                                },
+                                {
+                                    "id": "L03528100",
+                                    "libelle": "Saint Jacques de la Lande"
+                                },
+                                {
+                                    "id": "L03535300",
+                                    "libelle": "Vezin le Coquet"
+                                }
+                            ],
+                            "palier_population": "62",
+                            "zones_display": [
+                                "002760"
+                            ]
+                        }
+                    }
+                  ]
+                
+          400:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      "code": "400 - Bad Request",
+                      "C003 - PARAMETER_ERROR : Un des paramètres parmi 'ou, types' doit être renseigné"
+                    }
+                  }
+                  
+          500:
+            body:
+              application/json:
+                example: |
+                  {
+                    "status": {
+                      code: "500 - Internal Server Error"
+                    }
+                  }
+              

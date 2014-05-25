@@ -153,7 +153,6 @@ public class ActionAdaptator extends ObjectModelAdaptor {
 		}
 	    		
 		private String resolve(String aUrl) {
-			aUrl=Resolver.resolve(aUrl, action.getResource().getUriParameters(), "[UriParameter]");
 			Resource oResource=action.getResource();
 			while(oResource!=null) {
 				aUrl=Resolver.resolve(aUrl, Resolver.fromBaseToUri(oResource.getBaseUriParameters()), "[BaseUriParameter]");
@@ -202,6 +201,11 @@ public class ActionAdaptator extends ObjectModelAdaptor {
 			}
 			if(!Utils.hasBeenResolved(root.getBaseUri())) {
 				oUrl=root.getBaseUri()+oUrl;
+			}
+			oResource=action.getResource();
+			while(oResource!=null) {
+				oUrl=Resolver.resolve(oUrl, oResource.getUriParameters(), "[UriParameter]");
+				oResource=oResource.getParentResource();
 			}
 			return oUrl;
 		}

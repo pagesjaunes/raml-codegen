@@ -2,6 +2,7 @@
 .settings
 .classpath
 .project
+.metadata
 
 # Mardown generated html
 README.html

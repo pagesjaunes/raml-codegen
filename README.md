@@ -8,6 +8,8 @@ RAML-CODEGEN is a Java project which uses MAVEN.
 
 _Warning_  : this project uses the Java RAML parser which is not yet available on the maven repository. You must install this [project](https://github.com/mulesoft/raml-jaxrs-codegen) before building RAML-CODEGEN.
 
+_Nota_ : thanks to norberto.herz@mulesoft.com which has added the MuleSoft maven repository to the `pom.xml`.
+
 `git clone` this repository (in a location that we call `$raml-codegen` in this document) then `cd $raml-codegen` then `mvn package`.
 
 # Usage
@@ -33,7 +35,7 @@ usage: raml-codegen
 
 `-t` specifies what kind of project you want to generate from the RAML file.
 
-For this moment, `-t mocks` generates a Robohydra plug-in for mocking purpose and `-t tests` generates unit tests which validates an implementation again a specification.
+For this moment, `-t mocks` generates a Robohydra plug-in for mocking purpose and `-t tests` generates unit tests which validates an implementation against a specification.
 
 # Mocks
 
@@ -193,7 +195,7 @@ Change your `$plugin.conf` :
 ```json
 {"plugins": [
     {"name": "Test_API_v1",
-     "config": {"customPath":"your/pathname/here"} 
+     "config": {"customerPath":"your/pathname/here"} 
     }
     ]
 }
